@@ -1,6 +1,23 @@
 import 'package:flutter/material.dart';
 import 'package:scroll_texts_widget/scroll_texts_widget.dart';
 
+void main() {
+  runApp(const MyApp());
+}
+
+class MyApp extends StatelessWidget {
+  const MyApp({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      title: 'Scroll Texts Example',
+      theme: ThemeData(primarySwatch: Colors.blue),
+      home: const MyMarqueeApp(),
+    );
+  }
+}
+
 class MyMarqueeApp extends StatelessWidget {
   const MyMarqueeApp({super.key});
 
@@ -17,7 +34,11 @@ class MyMarqueeApp extends StatelessWidget {
               'Welcome to the highly efficient Flutter scroll text package.',
               'This text will scroll at a consistent 75 pixels per second!',
             ],
-            textStyle: const TextStyle(fontSize: 30.0, fontWeight: FontWeight.bold, color: Colors.deepPurple),
+            textStyle: const TextStyle(
+              fontSize: 30.0,
+              fontWeight: FontWeight.bold,
+              color: Colors.deepPurple,
+            ),
             scrollSpeed: 75.0, // 75 pixels per second
             pauseDuration: const Duration(seconds: 1),
             // Example of RTL usage

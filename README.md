@@ -1,7 +1,5 @@
 # scroll_texts_widget
 
-[![pub package](https://img.shields.io/pub/v/scroll_texts_widget.svg)](https://pub.dev/packages/scroll_texts_widget)
-
 A highly efficient and modular Flutter widget for creating scrolling marquee text banners.
 
 Unlike standard Flutter widgets that may struggle with long strings or rely on the device's animation scale, `scroll_texts_widget` uses **CustomPainter and a custom Ticker** to ensure smooth, pixel-perfect scrolling with maximum performance efficiency.
