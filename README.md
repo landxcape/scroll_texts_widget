@@ -16,6 +16,8 @@ Unlike standard marquee widgets that struggle with long strings, force full widg
 * **🌍 First-Class RTL Support:** Full support for `TextDirection.rtl` (Arabic, Hebrew) adjusting layout and scrolling direction.
 * **📏 Intrinsic Auto-Sizing:** Measures font metrics upfront to match the exact text height, preventing layout overflow errors.
 
+---
+
 ## 💻 Usage
 
 ### Basic Example
@@ -30,14 +32,14 @@ class MyMarqueeApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Efficient Marquee Demo')),
+      appBar: AppBar(title: const Text('Marquee Demo')),
       body: Center(
         child: Container(
           padding: const EdgeInsets.symmetric(vertical: 8.0),
           color: Colors.blueGrey.shade100,
           child: ScrollTextsWidget(
             texts: const [
-              'Welcome to the highly efficient Flutter scroll text package.',
+              'Welcome to the scroll_texts_widget package.',
               'This text will scroll at a consistent 75 pixels per second!',
             ],
             textStyle: const TextStyle(
@@ -45,7 +47,7 @@ class MyMarqueeApp extends StatelessWidget {
               fontWeight: FontWeight.bold,
               color: Colors.deepPurple,
             ),
-            scrollSpeed: 75.0, // 75 pixels per second
+            scrollSpeed: 75.0,
             pauseDuration: const Duration(seconds: 1),
           ),
         ),
@@ -55,32 +57,71 @@ class MyMarqueeApp extends StatelessWidget {
 }
 ```
 
-### Advanced Example with Controller & Streaming
+### Advanced Example with Controller & Callbacks
 
 ```dart
-final controller = ScrollTextsController();
+final controller = ScrollTextsController(
+  initialScrollOffset: 0.0,
+  initialTextIndex: 0,
+);
 
-// Monitor state or programmatic controls
+// Programmatic controls
 controller.pause();
 controller.resume();
 controller.togglePause();
-controller.jumpTo(250.0); // Jump to 250px offset
+controller.jumpTo(150.0); // Jump to 150px in the current text
 controller.jumpToText(2);  // Skip to 3rd announcement
 
 ScrollTextsWidget(
-  texts: myLongArticlesOrAnnouncements,
+  texts: myAnnouncements,
   controller: controller,
-  renderMode: ScrollTextRenderMode.auto, // Or .streaming for massive text
+  renderMode: ScrollTextRenderMode.auto,
   scrollSpeed: 90.0,
   pauseDuration: const Duration(seconds: 2),
+  textDirection: TextDirection.ltr,
   onScrollChanged: (offset, textIndex) {
-    // Current pixel offset and active text index
+    print('Scrolled to offset: $offset on text #$textIndex');
   },
   onTextCompleted: (completedIndex) {
-    // Triggered when an announcement finishes
+    print('Completed text #$completedIndex');
   },
 )
 ```
+
+---
+
+## 📖 API Reference
+
+### `ScrollTextsWidget` Properties
+
+| Property | Type | Default | Description |
+| :--- | :--- | :--- | :--- |
+| `texts` | `List<String>` | **Required** | The list of strings to cycle and scroll through. |
+| `controller` | `ScrollTextsController?` | `null` | Optional controller for reading position and programmatic playback/seeking. |
+| `scrollSpeed` | `double` | `50.0` | Velocity in pixels per second (px/s). |
+| `pauseDuration` | `Duration` | `Duration(seconds: 2)` | Duration to pause after a text exits before the next starts. |
+| `renderMode` | `ScrollTextRenderMode` | `.auto` | Rendering strategy: `.auto`, `.cached`, or `.streaming`. |
+| `textStyle` | `TextStyle` | `18px black` | Font style applied to the scrolling text. |
+| `textDirection` | `TextDirection` | `TextDirection.ltr` | Layout and scroll direction (`.ltr` scrolls left, `.rtl` scrolls right). |
+| `initialScrollOffset` | `double` | `0.0` | Initial starting pixel offset for the active text. |
+| `initialTextIndex` | `int` | `0` | Starting index in `texts`. |
+| `onScrollChanged` | `Function(double, int)?` | `null` | Callback invoked as the scroll offset changes. |
+| `onTextCompleted` | `Function(int)?` | `null` | Callback invoked when an active text finishes scrolling. |
+
+### `ScrollTextsController` API
+
+| Member | Type | Description |
+| :--- | :--- | :--- |
+| `offset` | `double` (getter) | The current scroll offset in pixels. |
+| `currentTextIndex` | `int` (getter) | The index of the active text in the playlist. |
+| `isPaused` | `bool` (getter) | Whether scrolling is currently paused. |
+| `pause()` | `void` | Pauses the scrolling animation. |
+| `resume()` | `void` | Resumes scrolling. |
+| `togglePause()` | `void` | Toggles between paused and scrolling states. |
+| `jumpTo(double offset)` | `void` | Instantly jumps the active text to the given pixel offset. |
+| `jumpToText(int textIndex, {double offset = 0.0})` | `void` | Jumps to a specific text in `texts` at an optional starting offset. |
+
+---
 
 ## 🛠️ Installation
 
