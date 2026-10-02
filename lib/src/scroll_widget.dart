@@ -241,7 +241,7 @@ class _ScrollTextsWidgetState extends State<ScrollTextsWidget>
   }
 
   void _updateStreamingWindow() {
-    // If offset went backwards or active tokens are out of sync, reset window cursor
+    // If offset went backwards or active tokens are out of sync, reset window position
     if (_activeTokens.isNotEmpty &&
         _activeTokens.first.startOffset > _scrollOffset) {
       _activeTokens.clear();

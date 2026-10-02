@@ -1,7 +1,9 @@
 name: scroll_texts_widget
 description: "A highly efficient and modular Flutter widget for creating scrolling marquee text banners."
-version: 0.0.1
+version: 0.1.0
 homepage: https://github.com/landxcape/scroll_texts_widget
+repository: https://github.com/landxcape/scroll_texts_widget
+issue_tracker: https://github.com/landxcape/scroll_texts_widget/issues
 license: MIT
 keywords:
   - scroll
@@ -17,7 +19,7 @@ keywords:
 
 environment:
   sdk: ^3.9.2
-  flutter: ">=1.17.0"
+  flutter: ">=3.24.0"
 
 dependencies:
   flutter:
@@ -26,4 +28,4 @@ dependencies:
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  flutter_lints: ^5.0.0
+  flutter_lints: ^6.0.0
