@@ -10,7 +10,7 @@
   - **`streaming`**: Implements a sliding window tokenizer and queue that measures and paints **only** the text chunks currently visible inside the viewport window, delivering $O(\text{viewport})$ constant memory overhead.
   - **`auto`**: Dynamically engages streaming for long texts and cached for short texts.
 - **`ScrollTextsController`:**
-  - Read real-time pixel `offset`, `currentTextIndex`, and `isPaused`.
+  - Read real-time pixel `offset`, `maxScrollExtent`, normalized `progress` (`0.0` to `1.0`), `currentTextIndex`, `isPaused`, and `effectiveRenderMode`.
   - Programmatic controls: `jumpTo(double offset)`, `jumpToText(int index, {double offset})`, `pause()`, `resume()`, and `togglePause()`.
 - **Position Initialization & Event Callbacks:**
   - Added `initialScrollOffset` and `initialTextIndex`.
