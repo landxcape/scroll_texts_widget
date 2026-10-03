@@ -100,6 +100,7 @@ ScrollTextsWidget(
 | `controller` | `ScrollTextsController?` | `null` | Optional controller for reading position and programmatic playback/seeking. |
 | `scrollSpeed` | `double` | `50.0` | Velocity in pixels per second (px/s). |
 | `pauseDuration` | `Duration` | `Duration(seconds: 2)` | Duration to pause after a text exits before the next starts. |
+| `repeat` | `bool` | `true` | Whether to continuously loop through the text playlist. |
 | `renderMode` | `ScrollTextRenderMode` | `.auto` | Rendering strategy: `.auto`, `.cached`, or `.streaming`. |
 | `textStyle` | `TextStyle` | `18px black` | Font style applied to the scrolling text. |
 | `textDirection` | `TextDirection` | `TextDirection.ltr` | Layout and scroll direction (`.ltr` scrolls left, `.rtl` scrolls right). |

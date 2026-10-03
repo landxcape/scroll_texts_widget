@@ -36,6 +36,9 @@ class ScrollTextsWidget extends StatefulWidget {
   /// Rendering strategy to use. Defaults to [ScrollTextRenderMode.auto].
   final ScrollTextRenderMode renderMode;
 
+  /// Whether to continuously cycle through the text playlist. Defaults to true.
+  final bool repeat;
+
   /// Optional controller to monitor position, pause/resume, or jump.
   final ScrollTextsController? controller;
 
@@ -59,6 +62,7 @@ class ScrollTextsWidget extends StatefulWidget {
     this.pauseDuration = const Duration(seconds: 2),
     this.textDirection = TextDirection.ltr,
     this.renderMode = ScrollTextRenderMode.auto,
+    this.repeat = true,
     this.controller,
     this.initialScrollOffset = 0.0,
     this.initialTextIndex = 0,
@@ -93,7 +97,7 @@ class _ScrollTextsWidgetState extends State<ScrollTextsWidget>
 
   double _scrollOffset = 0.0;
   int _currentTextIndex = 0;
-  bool _isPaused = false;
+  bool _isManuallyPaused = false;
   double _containerWidth = 300.0;
   double _textHeight = 0.0;
   Duration? _lastElapsedDuration;
@@ -127,7 +131,7 @@ class _ScrollTextsWidgetState extends State<ScrollTextsWidget>
 
     if (widget.texts.isNotEmpty) {
       _prepareActiveText();
-      if (!_isPaused) {
+      if (!_isManuallyPaused) {
         _ticker?.start();
       }
     }
@@ -137,7 +141,7 @@ class _ScrollTextsWidgetState extends State<ScrollTextsWidget>
     _effectiveController.updateState(
       offset: _scrollOffset,
       textIndex: _currentTextIndex,
-      isPaused: _isPaused,
+      isPaused: _isManuallyPaused,
     );
     _effectiveController.onJumpToRequested = _handleJumpTo;
     _effectiveController.onJumpToTextRequested = _handleJumpToText;
@@ -193,7 +197,7 @@ class _ScrollTextsWidgetState extends State<ScrollTextsWidget>
   }
 
   void _tick(Duration elapsed) {
-    if (_isPaused || widget.texts.isEmpty) return;
+    if (_isManuallyPaused || widget.texts.isEmpty) return;
 
     final double deltaTimeSeconds;
     if (_lastElapsedDuration == null) {
@@ -223,7 +227,7 @@ class _ScrollTextsWidgetState extends State<ScrollTextsWidget>
     _effectiveController.updateState(
       offset: _scrollOffset,
       textIndex: _currentTextIndex,
-      isPaused: _isPaused,
+      isPaused: _isManuallyPaused,
     );
     widget.onScrollChanged?.call(_scrollOffset, _currentTextIndex);
 
@@ -345,12 +349,25 @@ class _ScrollTextsWidgetState extends State<ScrollTextsWidget>
   }
 
   void _cycleNextText() async {
-    _isPaused = true;
+    _ticker?.stop();
     _scrollOffset = 0.0;
     _lastElapsedDuration = null;
 
     final completedIndex = _currentTextIndex;
     widget.onTextCompleted?.call(completedIndex);
+
+    final bool isLastText = _currentTextIndex >= widget.texts.length - 1;
+    if (!widget.repeat && isLastText) {
+      _effectiveController.updateState(
+        offset: _scrollOffset,
+        textIndex: _currentTextIndex,
+        isPaused: true,
+      );
+      if (mounted) {
+        setState(() {});
+      }
+      return;
+    }
 
     if (widget.texts.isNotEmpty) {
       _currentTextIndex = (_currentTextIndex + 1) % widget.texts.length;
@@ -360,7 +377,7 @@ class _ScrollTextsWidgetState extends State<ScrollTextsWidget>
     _effectiveController.updateState(
       offset: _scrollOffset,
       textIndex: _currentTextIndex,
-      isPaused: true,
+      isPaused: _isManuallyPaused,
     );
 
     if (mounted) {
@@ -372,15 +389,17 @@ class _ScrollTextsWidgetState extends State<ScrollTextsWidget>
     }
 
     if (!mounted) return;
-    if (_effectiveController.isPaused) return;
+    if (_isManuallyPaused) return;
 
-    _isPaused = false;
+    _lastElapsedDuration = null;
     _effectiveController.updateState(
       offset: _scrollOffset,
       textIndex: _currentTextIndex,
       isPaused: false,
     );
-    _ticker?.start();
+    if (_ticker?.isTicking == false) {
+      _ticker?.start();
+    }
   }
 
   void _handleJumpTo(double offset) {
@@ -393,7 +412,7 @@ class _ScrollTextsWidgetState extends State<ScrollTextsWidget>
     _effectiveController.updateState(
       offset: _scrollOffset,
       textIndex: _currentTextIndex,
-      isPaused: _isPaused,
+      isPaused: _isManuallyPaused,
     );
   }
 
@@ -406,7 +425,7 @@ class _ScrollTextsWidgetState extends State<ScrollTextsWidget>
     _effectiveController.updateState(
       offset: _scrollOffset,
       textIndex: _currentTextIndex,
-      isPaused: _isPaused,
+      isPaused: _isManuallyPaused,
     );
     if (mounted) {
       setState(() {});
@@ -414,16 +433,18 @@ class _ScrollTextsWidgetState extends State<ScrollTextsWidget>
   }
 
   void _handlePause() {
-    _isPaused = true;
+    _isManuallyPaused = true;
     _ticker?.stop();
     _lastElapsedDuration = null;
   }
 
   void _handleResume() {
     if (widget.texts.isEmpty) return;
-    _isPaused = false;
+    _isManuallyPaused = false;
     _lastElapsedDuration = null;
-    _ticker?.start();
+    if (_ticker?.isTicking == false) {
+      _ticker?.start();
+    }
   }
 
   @override
@@ -460,14 +481,14 @@ class _ScrollTextsWidgetState extends State<ScrollTextsWidget>
           _scrollOffset = 0.0;
         }
         _prepareActiveText();
-        if (!_isPaused && (_ticker?.isTicking == false)) {
+        if (!_isManuallyPaused && (_ticker?.isTicking == false)) {
           _ticker?.start();
         }
       }
       _effectiveController.updateState(
         offset: _scrollOffset,
         textIndex: _currentTextIndex,
-        isPaused: _isPaused,
+        isPaused: _isManuallyPaused,
       );
       needsRebuild = true;
     }

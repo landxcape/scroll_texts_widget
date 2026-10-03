@@ -53,6 +53,53 @@ void main() {
       await tester.pump(const Duration(milliseconds: 500));
 
       expect(controller.currentTextIndex, 1);
+
+      // Verify it starts scrolling the second text
+      await tester.pump(const Duration(milliseconds: 100));
+      expect(controller.offset, greaterThan(0));
+
+      // Advance past second scroll to verify it loops back to index 0 (repeat: true)
+      await tester.pump(const Duration(seconds: 5));
+      await tester.pump(const Duration(milliseconds: 500));
+      expect(controller.currentTextIndex, 0);
+    });
+
+    testWidgets('stops after last text completes when repeat is false',
+        (tester) async {
+      final texts = ['First Announcement', 'Second Announcement'];
+      final controller = ScrollTextsController();
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: SizedBox(
+              width: 300,
+              child: ScrollTextsWidget(
+                texts: texts,
+                controller: controller,
+                repeat: false,
+                scrollSpeed: 300.0,
+                pauseDuration: const Duration(milliseconds: 100),
+              ),
+            ),
+          ),
+        ),
+      );
+
+      // Advance through first text
+      await tester.pump(const Duration(seconds: 3));
+      await tester.pump(const Duration(milliseconds: 200));
+      expect(controller.currentTextIndex, 1);
+
+      // Advance through second (last) text
+      await tester.pump(const Duration(seconds: 3));
+      await tester.pump(const Duration(milliseconds: 200));
+      expect(controller.currentTextIndex, 1);
+      expect(controller.isPaused, isTrue);
+
+      final offsetAtEnd = controller.offset;
+      await tester.pump(const Duration(seconds: 1));
+      expect(controller.offset, offsetAtEnd);
     });
 
     testWidgets('supports jumpTo and pause/resume via controller',

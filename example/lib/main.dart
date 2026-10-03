@@ -33,6 +33,7 @@ class _MyMarqueeAppState extends State<MyMarqueeApp> {
   ScrollTextRenderMode _renderMode = ScrollTextRenderMode.auto;
   TextDirection _textDirection = TextDirection.ltr;
   double _speed = 80.0;
+  bool _repeat = true;
   String _lastCompletedText = 'None yet';
 
   final List<String> _englishTexts = [
@@ -86,6 +87,7 @@ class _MyMarqueeAppState extends State<MyMarqueeApp> {
                 controller: _controller,
                 renderMode: _renderMode,
                 textDirection: _textDirection,
+                repeat: _repeat,
                 scrollSpeed: _speed,
                 pauseDuration: const Duration(seconds: 1),
                 onTextCompleted: (index) {
@@ -264,6 +266,20 @@ class _MyMarqueeAppState extends State<MyMarqueeApp> {
                           ),
                         ),
                       ],
+                    ),
+                    const Divider(height: 24),
+                    SwitchListTile(
+                      title: const Text('Continuous Looping (repeat)'),
+                      subtitle: const Text(
+                        'Loops back to start after the last text completes',
+                      ),
+                      value: _repeat,
+                      onChanged: (val) {
+                        setState(() {
+                          _repeat = val;
+                        });
+                      },
+                      contentPadding: EdgeInsets.zero,
                     ),
                   ],
                 ),
