@@ -58,6 +58,8 @@ class ScrollTextsWidget extends StatefulWidget {
   /// Optional callback invoked when a text has completed its full scroll.
   final void Function(int textIndex)? onTextCompleted;
 
+  /// Creates a [ScrollTextsWidget] that cycles through [texts] with continuous
+  /// horizontal marquee scrolling.
   const ScrollTextsWidget({
     super.key,
     required this.texts,
