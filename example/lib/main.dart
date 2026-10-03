@@ -33,6 +33,7 @@ class _MyMarqueeAppState extends State<MyMarqueeApp> {
   ScrollTextRenderMode _renderMode = ScrollTextRenderMode.auto;
   TextDirection _textDirection = TextDirection.ltr;
   double _speed = 80.0;
+  double _pauseSeconds = 1.0;
   bool _repeat = true;
   String _lastCompletedText = 'None yet';
 
@@ -89,11 +90,15 @@ class _MyMarqueeAppState extends State<MyMarqueeApp> {
                 textDirection: _textDirection,
                 repeat: _repeat,
                 scrollSpeed: _speed,
-                pauseDuration: const Duration(seconds: 1),
+                pauseDuration:
+                    Duration(milliseconds: (_pauseSeconds * 1000).round()),
                 onTextCompleted: (index) {
                   setState(() {
                     _lastCompletedText = '#${index + 1}';
                   });
+                },
+                onScrollChanged: (offset, index) {
+                  // Real-time position callback hook
                 },
                 textStyle: const TextStyle(
                   fontSize: 22.0,
@@ -201,6 +206,27 @@ class _MyMarqueeAppState extends State<MyMarqueeApp> {
                             onChanged: (val) {
                               setState(() {
                                 _speed = val;
+                              });
+                            },
+                          ),
+                        ),
+                      ],
+                    ),
+                    Row(
+                      children: [
+                        Text(
+                          'Pause Gap: ${_pauseSeconds.toStringAsFixed(1)} s',
+                        ),
+                        Expanded(
+                          child: Slider(
+                            value: _pauseSeconds,
+                            min: 0.0,
+                            max: 5.0,
+                            divisions: 10,
+                            label: '${_pauseSeconds.toStringAsFixed(1)} s',
+                            onChanged: (val) {
+                              setState(() {
+                                _pauseSeconds = val;
                               });
                             },
                           ),
