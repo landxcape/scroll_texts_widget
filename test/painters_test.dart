@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:scroll_texts_widget/scroll_texts_widget.dart';
 import 'package:scroll_texts_widget/src/painters/cached_scroll_painter.dart';
 import 'package:scroll_texts_widget/src/painters/streaming_scroll_painter.dart';
 
@@ -29,11 +30,13 @@ void main() {
       expect(painter.shouldRepaint(differentOffset), isTrue);
     });
 
-    testWidgets('paints in LTR and RTL without error', (tester) async {
+    testWidgets('paints dynamically with controller offset', (tester) async {
       final tp = TextPainter(
         text: const TextSpan(text: 'Banner', style: TextStyle(fontSize: 14)),
         textDirection: TextDirection.ltr,
       )..layout();
+
+      final controller = ScrollTextsController(initialScrollOffset: 10.0);
 
       await tester.pumpWidget(
         MaterialApp(
@@ -42,7 +45,7 @@ void main() {
               size: const Size(300, 30),
               painter: CachedScrollPainter(
                 textPainter: tp,
-                scrollOffset: 50.0,
+                controller: controller,
                 containerWidth: 300.0,
                 textDirection: TextDirection.ltr,
               ),
@@ -52,6 +55,9 @@ void main() {
       );
 
       expect(find.byType(CustomPaint), findsWidgets);
+      controller.jumpTo(100.0);
+      await tester.pump();
+      expect(controller.offset, 100.0);
     });
   });
 

@@ -203,5 +203,76 @@ void main() {
       expect(tester.takeException(), isNull);
       expect(find.byType(ScrollTextsWidget), findsOneWidget);
     });
+
+    testWidgets(
+        'switching renderMode between streaming, cached, and auto mid-scroll does not throw',
+        (tester) async {
+      await tester.pumpWidget(
+        const MaterialApp(
+          home: Scaffold(
+            body: SizedBox(
+              width: 300,
+              child: ScrollTextsWidget(
+                texts: ['Short sample text that scrolls across the screen.'],
+                renderMode: ScrollTextRenderMode.streaming,
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pump(const Duration(milliseconds: 300));
+      expect(tester.takeException(), isNull);
+
+      // Rebuild with cached mode mid-scroll
+      await tester.pumpWidget(
+        const MaterialApp(
+          home: Scaffold(
+            body: SizedBox(
+              width: 300,
+              child: ScrollTextsWidget(
+                texts: ['Short sample text that scrolls across the screen.'],
+                renderMode: ScrollTextRenderMode.cached,
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pump(const Duration(milliseconds: 300));
+      expect(tester.takeException(), isNull);
+
+      // Rebuild with streaming mode again mid-scroll
+      await tester.pumpWidget(
+        const MaterialApp(
+          home: Scaffold(
+            body: SizedBox(
+              width: 300,
+              child: ScrollTextsWidget(
+                texts: ['Short sample text that scrolls across the screen.'],
+                renderMode: ScrollTextRenderMode.streaming,
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pump(const Duration(milliseconds: 300));
+      expect(tester.takeException(), isNull);
+
+      // Rebuild with auto mode
+      await tester.pumpWidget(
+        const MaterialApp(
+          home: Scaffold(
+            body: SizedBox(
+              width: 300,
+              child: ScrollTextsWidget(
+                texts: ['Short sample text that scrolls across the screen.'],
+                renderMode: ScrollTextRenderMode.auto,
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pump(const Duration(milliseconds: 300));
+      expect(tester.takeException(), isNull);
+    });
   });
 }

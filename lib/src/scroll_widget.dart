@@ -70,19 +70,16 @@ class ScrollTextsWidget extends StatefulWidget {
   State<ScrollTextsWidget> createState() => _ScrollTextsWidgetState();
 }
 
-class _ActiveStreamingToken {
+class _ActiveStreamingToken extends ActiveStreamingChunk {
   final int index;
   final String text;
-  final TextPainter painter;
-  final double width;
-  final double startOffset;
 
   _ActiveStreamingToken({
     required this.index,
     required this.text,
-    required this.painter,
-    required this.width,
-    required this.startOffset,
+    required super.painter,
+    required super.width,
+    required super.startOffset,
   });
 }
 
@@ -182,11 +179,7 @@ class _ScrollTextsWidgetState extends State<ScrollTextsWidget>
       _tokenWidths
         ..clear()
         ..addAll(List<double?>.filled(_tokens.length, null));
-      _activeTokens.clear();
-      _nextTokenIndex = 0;
-      _nextTokenStartOffset = 0.0;
-      _streamingTotalDistance = double.infinity;
-      _updateStreamingWindow();
+      _rebuildStreamingWindow(_scrollOffset);
     } else {
       _activeTokens.clear();
       _tokens = const [];
@@ -240,18 +233,77 @@ class _ScrollTextsWidgetState extends State<ScrollTextsWidget>
     }
   }
 
+  double _measureTokenWidth(String token) {
+    final painter = TextPainter(
+      text: TextSpan(text: token, style: widget.textStyle),
+      textDirection: widget.textDirection,
+    )..layout(minWidth: 0, maxWidth: double.infinity);
+    _textHeight = math.max(_textHeight, painter.height);
+    return painter.width;
+  }
+
+  void _rebuildStreamingWindow(double offset) {
+    _activeTokens.clear();
+    _nextTokenIndex = 0;
+    _nextTokenStartOffset = 0.0;
+
+    final minOffset = offset - _containerWidth;
+    final maxOffset = offset + _containerWidth;
+
+    while (_nextTokenIndex < _tokens.length) {
+      if (_nextTokenStartOffset > maxOffset) {
+        break;
+      }
+
+      final tokenText = _tokens[_nextTokenIndex];
+      final double width = _tokenWidths[_nextTokenIndex] ??=
+          _measureTokenWidth(tokenText);
+      final double tokenStart = _nextTokenStartOffset;
+      final double tokenEnd = tokenStart + width;
+
+      if (tokenEnd >= minOffset && tokenStart <= maxOffset) {
+        final painter = TextPainter(
+          text: TextSpan(text: tokenText, style: widget.textStyle),
+          textDirection: widget.textDirection,
+        )..layout(minWidth: 0, maxWidth: double.infinity);
+        _textHeight = math.max(_textHeight, painter.height);
+
+        _activeTokens.add(
+          _ActiveStreamingToken(
+            index: _nextTokenIndex,
+            text: tokenText,
+            painter: painter,
+            width: width,
+            startOffset: tokenStart,
+          ),
+        );
+      }
+
+      _nextTokenStartOffset += width;
+      _nextTokenIndex++;
+    }
+
+    if (_nextTokenIndex >= _tokens.length) {
+      _streamingTotalDistance = _nextTokenStartOffset + _containerWidth;
+    } else {
+      _streamingTotalDistance = double.infinity;
+    }
+  }
+
   void _updateStreamingWindow() {
-    // If offset went backwards or active tokens are out of sync, reset window position
-    if (_activeTokens.isNotEmpty &&
-        _activeTokens.first.startOffset > _scrollOffset) {
-      _activeTokens.clear();
-      _nextTokenIndex = 0;
-      _nextTokenStartOffset = 0.0;
+    if (_tokens.isEmpty) return;
+
+    if (_activeTokens.isEmpty ||
+        _scrollOffset < (_activeTokens.first.startOffset - _containerWidth) ||
+        _scrollOffset > (_nextTokenStartOffset + _containerWidth)) {
+      _rebuildStreamingWindow(_scrollOffset);
+      return;
     }
 
     // 1. Advance and measure tokens entering the visible window on the entry edge
+    final maxOffset = _scrollOffset + _containerWidth;
     while (_nextTokenIndex < _tokens.length) {
-      if (_nextTokenStartOffset > _scrollOffset + _containerWidth) {
+      if (_nextTokenStartOffset > maxOffset) {
         break;
       }
 
@@ -265,7 +317,7 @@ class _ScrollTextsWidgetState extends State<ScrollTextsWidget>
       _textHeight = math.max(_textHeight, painter.height);
       _tokenWidths[_nextTokenIndex] = width;
 
-      if (_nextTokenStartOffset + width >= _scrollOffset) {
+      if (_nextTokenStartOffset + width >= _scrollOffset - _containerWidth) {
         _activeTokens.add(
           _ActiveStreamingToken(
             index: _nextTokenIndex,
@@ -286,9 +338,9 @@ class _ScrollTextsWidgetState extends State<ScrollTextsWidget>
     }
 
     // 2. Remove tokens that have scrolled completely past the exit edge
+    final minOffset = _scrollOffset - _containerWidth;
     _activeTokens.removeWhere((token) {
-      return (_scrollOffset >=
-          _containerWidth + token.startOffset + token.width);
+      return (token.startOffset + token.width < minOffset);
     });
   }
 
@@ -336,7 +388,7 @@ class _ScrollTextsWidgetState extends State<ScrollTextsWidget>
     final currentText =
         widget.texts.isNotEmpty ? widget.texts[_currentTextIndex] : '';
     if (_isStreamingActive(currentText)) {
-      _updateStreamingWindow();
+      _rebuildStreamingWindow(_scrollOffset);
     }
     _effectiveController.updateState(
       offset: _scrollOffset,
@@ -385,13 +437,19 @@ class _ScrollTextsWidgetState extends State<ScrollTextsWidget>
       _attachController();
     }
 
+    bool needsRebuild = false;
+
     if (widget.textStyle != oldWidget.textStyle ||
-        widget.textDirection != oldWidget.textDirection) {
+        widget.textDirection != oldWidget.textDirection ||
+        widget.renderMode != oldWidget.renderMode) {
+      _tokenWidths.clear();
       _measureTextHeight();
       _prepareActiveText();
+      needsRebuild = true;
     }
 
     if (widget.texts != oldWidget.texts) {
+      _tokenWidths.clear();
       if (widget.texts.isEmpty) {
         _ticker?.stop();
         _currentTextIndex = 0;
@@ -411,6 +469,10 @@ class _ScrollTextsWidgetState extends State<ScrollTextsWidget>
         textIndex: _currentTextIndex,
         isPaused: _isPaused,
       );
+      needsRebuild = true;
+    }
+
+    if (needsRebuild && mounted) {
       setState(() {});
     }
   }
@@ -425,6 +487,12 @@ class _ScrollTextsWidgetState extends State<ScrollTextsWidget>
 
     final currentText = widget.texts[_currentTextIndex];
     final bool isStreaming = _isStreamingActive(currentText);
+
+    if (!isStreaming && _cachedTextPainter == null) {
+      _prepareActiveText();
+    } else if (isStreaming && _tokens.isEmpty && currentText.isNotEmpty) {
+      _prepareActiveText();
+    }
 
     return LayoutBuilder(
       builder: (context, constraints) {
@@ -441,26 +509,18 @@ class _ScrollTextsWidgetState extends State<ScrollTextsWidget>
 
         final CustomPainter painter;
         if (isStreaming) {
-          final visibleChunks = _activeTokens.map((token) {
-            final double x;
-            if (widget.textDirection == TextDirection.ltr) {
-              x = _containerWidth - _scrollOffset + token.startOffset;
-            } else {
-              x = -token.width - token.startOffset + _scrollOffset;
-            }
-            return PositionedChunk(painter: token.painter, x: x);
-          }).toList();
-
           painter = StreamingScrollPainter(
             repaint: _effectiveController,
-            visibleChunks: visibleChunks,
+            controller: _effectiveController,
+            getActiveChunks: () => _activeTokens,
             containerWidth: _containerWidth,
+            textDirection: widget.textDirection,
           );
         } else {
           painter = CachedScrollPainter(
             repaint: _effectiveController,
+            controller: _effectiveController,
             textPainter: _cachedTextPainter!,
-            scrollOffset: _scrollOffset,
             containerWidth: _containerWidth,
             textDirection: widget.textDirection,
           );
