@@ -13,11 +13,19 @@ class ScrollTextsController extends ChangeNotifier {
   ScrollTextRenderMode _effectiveRenderMode;
   double _maxScrollExtent;
 
+  /// Callback registered by the attached widget to handle jumps to an offset.
   void Function(double offset)? onJumpToRequested;
+
+  /// Callback registered by the attached widget to handle jumps to an index and offset.
   void Function(int index, double offset)? onJumpToTextRequested;
+
+  /// Callback registered by the attached widget to handle pause requests.
   void Function()? onPauseRequested;
+
+  /// Callback registered by the attached widget to handle resume requests.
   void Function()? onResumeRequested;
 
+  /// Creates a controller to monitor and control a [ScrollTextsWidget].
   ScrollTextsController({
     double initialScrollOffset = 0.0,
     int initialTextIndex = 0,
@@ -43,8 +51,9 @@ class ScrollTextsController extends ChangeNotifier {
 
   /// The active render mode currently selected and utilized by the engine.
   ///
-  /// When [ScrollTextsWidget.renderMode] is set to [ScrollTextRenderMode.auto],
-  /// this reveals whether [cached] or [streaming] is actively engaged.
+  /// When `ScrollTextsWidget.renderMode` is set to [ScrollTextRenderMode.auto],
+  /// this reveals whether [ScrollTextRenderMode.cached] or
+  /// [ScrollTextRenderMode.streaming] is actively engaged.
   ScrollTextRenderMode get effectiveRenderMode => _effectiveRenderMode;
 
   /// The index of the currently active text string in the playlist.
