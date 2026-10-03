@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.1
+
+- Enhanced package discoverability and category indexing on pub.dev.
+- Added official pub.dev `topics` (`marquee`, `ticker`, `scrolling`, `text`, `animation`).
+- Refined package description to improve search relevance for marquee and ticker queries.
+
 ## 0.1.0
 
 ✨ **Major Architecture & Performance Overhaul** ✨

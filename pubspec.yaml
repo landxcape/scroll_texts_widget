@@ -1,21 +1,16 @@
 name: scroll_texts_widget
-description: "A highly efficient and modular Flutter widget for creating scrolling marquee text banners."
-version: 0.1.0
+description: "Smooth horizontal marquee scrolling text ticker for Flutter. Supports streaming for long texts, cached rendering, and pause/progress controls."
+version: 0.1.1
 homepage: https://github.com/landxcape/scroll_texts_widget
 repository: https://github.com/landxcape/scroll_texts_widget
 issue_tracker: https://github.com/landxcape/scroll_texts_widget/issues
 license: MIT
-keywords:
-  - scroll
-  - scrolling
-  - text
+topics:
   - marquee
   - ticker
-  - custompainter
-  - performance
-  - rtl
-  - efficient
-  - banner
+  - scrolling
+  - text
+  - animation
 
 environment:
   sdk: ^3.9.2
