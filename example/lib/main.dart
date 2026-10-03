@@ -90,8 +90,9 @@ class _MyMarqueeAppState extends State<MyMarqueeApp> {
                 textDirection: _textDirection,
                 repeat: _repeat,
                 scrollSpeed: _speed,
-                pauseDuration:
-                    Duration(milliseconds: (_pauseSeconds * 1000).round()),
+                pauseDuration: Duration(
+                  milliseconds: (_pauseSeconds * 1000).round(),
+                ),
                 onTextCompleted: (index) {
                   setState(() {
                     _lastCompletedText = '#${index + 1}';
@@ -116,8 +117,10 @@ class _MyMarqueeAppState extends State<MyMarqueeApp> {
                   children: [
                     const Text(
                       'Controller & Position Monitor',
-                      style:
-                          TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                     const SizedBox(height: 8),
                     ListenableBuilder(
@@ -168,9 +171,8 @@ class _MyMarqueeAppState extends State<MyMarqueeApp> {
                           ),
                           label: ListenableBuilder(
                             listenable: _controller,
-                            builder: (context, _) => Text(
-                              _controller.isPaused ? 'Resume' : 'Pause',
-                            ),
+                            builder: (context, _) =>
+                                Text(_controller.isPaused ? 'Resume' : 'Pause'),
                           ),
                         ),
                         OutlinedButton(
@@ -185,7 +187,7 @@ class _MyMarqueeAppState extends State<MyMarqueeApp> {
                           onPressed: () {
                             final nextIndex =
                                 (_controller.currentTextIndex + 1) %
-                                    _currentTexts.length;
+                                _currentTexts.length;
                             _controller.jumpToText(nextIndex);
                           },
                           child: const Text('Next Text'),

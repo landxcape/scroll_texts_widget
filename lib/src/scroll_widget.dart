@@ -122,7 +122,8 @@ class _ScrollTextsWidgetState extends State<ScrollTextsWidget>
   @override
   void initState() {
     super.initState();
-    _currentTextIndex = (widget.texts.isNotEmpty &&
+    _currentTextIndex =
+        (widget.texts.isNotEmpty &&
             widget.initialTextIndex < widget.texts.length &&
             widget.initialTextIndex >= 0)
         ? widget.initialTextIndex
@@ -275,8 +276,9 @@ class _ScrollTextsWidgetState extends State<ScrollTextsWidget>
       }
 
       final tokenText = _tokens[_nextTokenIndex];
-      final double width = _tokenWidths[_nextTokenIndex] ??=
-          _measureTokenWidth(tokenText);
+      final double width = _tokenWidths[_nextTokenIndex] ??= _measureTokenWidth(
+        tokenText,
+      );
       final double tokenStart = _nextTokenStartOffset;
       final double tokenEnd = tokenStart + width;
 
@@ -419,8 +421,9 @@ class _ScrollTextsWidgetState extends State<ScrollTextsWidget>
 
   void _handleJumpTo(double offset) {
     _scrollOffset = offset;
-    final currentText =
-        widget.texts.isNotEmpty ? widget.texts[_currentTextIndex] : '';
+    final currentText = widget.texts.isNotEmpty
+        ? widget.texts[_currentTextIndex]
+        : '';
     if (_isStreamingActive(currentText)) {
       _rebuildStreamingWindow(_scrollOffset);
     }

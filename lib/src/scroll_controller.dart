@@ -18,9 +18,9 @@ class ScrollTextsController extends ChangeNotifier {
     double initialScrollOffset = 0.0,
     int initialTextIndex = 0,
     bool initialPaused = false,
-  })  : _offset = initialScrollOffset,
-        _currentTextIndex = initialTextIndex,
-        _isPaused = initialPaused;
+  }) : _offset = initialScrollOffset,
+       _currentTextIndex = initialTextIndex,
+       _isPaused = initialPaused;
 
   /// The current scroll offset in pixels.
   double get offset => _offset;
@@ -37,7 +37,8 @@ class ScrollTextsController extends ChangeNotifier {
     required int textIndex,
     required bool isPaused,
   }) {
-    final changed = _offset != offset ||
+    final changed =
+        _offset != offset ||
         _currentTextIndex != textIndex ||
         _isPaused != isPaused;
     _offset = offset;

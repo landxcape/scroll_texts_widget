@@ -5,24 +5,24 @@ import 'package:scroll_texts_widget/scroll_texts_widget.dart';
 void main() {
   group('ScrollTextsWidget', () {
     testWidgets(
-        'renders empty texts list without LateInitializationError on dispose',
-        (tester) async {
-      await tester.pumpWidget(
-        const MaterialApp(
-          home: Scaffold(
-            body: ScrollTextsWidget(texts: []),
+      'renders empty texts list without LateInitializationError on dispose',
+      (tester) async {
+        await tester.pumpWidget(
+          const MaterialApp(
+            home: Scaffold(body: ScrollTextsWidget(texts: [])),
           ),
-        ),
-      );
-      expect(find.byType(ScrollTextsWidget), findsOneWidget);
+        );
+        expect(find.byType(ScrollTextsWidget), findsOneWidget);
 
-      // Trigger dispose
-      await tester.pumpWidget(const SizedBox.shrink());
-      expect(tester.takeException(), isNull);
-    });
+        // Trigger dispose
+        await tester.pumpWidget(const SizedBox.shrink());
+        expect(tester.takeException(), isNull);
+      },
+    );
 
-    testWidgets('scrolls text and cycles to next text after pause',
-        (tester) async {
+    testWidgets('scrolls text and cycles to next text after pause', (
+      tester,
+    ) async {
       final texts = ['First Announcement', 'Second Announcement'];
       final controller = ScrollTextsController();
 
@@ -64,8 +64,9 @@ void main() {
       expect(controller.currentTextIndex, 0);
     });
 
-    testWidgets('stops after last text completes when repeat is false',
-        (tester) async {
+    testWidgets('stops after last text completes when repeat is false', (
+      tester,
+    ) async {
       final texts = ['First Announcement', 'Second Announcement'];
       final controller = ScrollTextsController();
 
@@ -102,8 +103,9 @@ void main() {
       expect(controller.offset, offsetAtEnd);
     });
 
-    testWidgets('supports jumpTo and pause/resume via controller',
-        (tester) async {
+    testWidgets('supports jumpTo and pause/resume via controller', (
+      tester,
+    ) async {
       final controller = ScrollTextsController();
 
       await tester.pumpWidget(
@@ -140,8 +142,9 @@ void main() {
       expect(controller.isPaused, isFalse);
     });
 
-    testWidgets('supports streaming render mode with long text',
-        (tester) async {
+    testWidgets('supports streaming render mode with long text', (
+      tester,
+    ) async {
       final longText = 'Long text ' * 100;
       final controller = ScrollTextsController();
 
@@ -190,8 +193,9 @@ void main() {
       expect(find.byType(ScrollTextsWidget), findsOneWidget);
     });
 
-    testWidgets('didUpdateWidget updates texts and handles index bounds',
-        (tester) async {
+    testWidgets('didUpdateWidget updates texts and handles index bounds', (
+      tester,
+    ) async {
       final controller = ScrollTextsController();
 
       await tester.pumpWidget(
@@ -231,16 +235,15 @@ void main() {
       expect(tester.takeException(), isNull);
     });
 
-    testWidgets('handles infinite width constraint safely without throwing',
-        (tester) async {
+    testWidgets('handles infinite width constraint safely without throwing', (
+      tester,
+    ) async {
       await tester.pumpWidget(
         const MaterialApp(
           home: Scaffold(
             body: Row(
               children: [
-                ScrollTextsWidget(
-                  texts: ['Unbounded parent test'],
-                ),
+                ScrollTextsWidget(texts: ['Unbounded parent test']),
               ],
             ),
           ),
@@ -252,78 +255,80 @@ void main() {
     });
 
     testWidgets(
-        'switching renderMode between streaming, cached, and auto mid-scroll does not throw',
-        (tester) async {
-      await tester.pumpWidget(
-        const MaterialApp(
-          home: Scaffold(
-            body: SizedBox(
-              width: 300,
-              child: ScrollTextsWidget(
-                texts: ['Short sample text that scrolls across the screen.'],
-                renderMode: ScrollTextRenderMode.streaming,
+      'switching renderMode between streaming, cached, and auto mid-scroll does not throw',
+      (tester) async {
+        await tester.pumpWidget(
+          const MaterialApp(
+            home: Scaffold(
+              body: SizedBox(
+                width: 300,
+                child: ScrollTextsWidget(
+                  texts: ['Short sample text that scrolls across the screen.'],
+                  renderMode: ScrollTextRenderMode.streaming,
+                ),
               ),
             ),
           ),
-        ),
-      );
-      await tester.pump(const Duration(milliseconds: 300));
-      expect(tester.takeException(), isNull);
+        );
+        await tester.pump(const Duration(milliseconds: 300));
+        expect(tester.takeException(), isNull);
 
-      // Rebuild with cached mode mid-scroll
-      await tester.pumpWidget(
-        const MaterialApp(
-          home: Scaffold(
-            body: SizedBox(
-              width: 300,
-              child: ScrollTextsWidget(
-                texts: ['Short sample text that scrolls across the screen.'],
-                renderMode: ScrollTextRenderMode.cached,
+        // Rebuild with cached mode mid-scroll
+        await tester.pumpWidget(
+          const MaterialApp(
+            home: Scaffold(
+              body: SizedBox(
+                width: 300,
+                child: ScrollTextsWidget(
+                  texts: ['Short sample text that scrolls across the screen.'],
+                  renderMode: ScrollTextRenderMode.cached,
+                ),
               ),
             ),
           ),
-        ),
-      );
-      await tester.pump(const Duration(milliseconds: 300));
-      expect(tester.takeException(), isNull);
+        );
+        await tester.pump(const Duration(milliseconds: 300));
+        expect(tester.takeException(), isNull);
 
-      // Rebuild with streaming mode again mid-scroll
-      await tester.pumpWidget(
-        const MaterialApp(
-          home: Scaffold(
-            body: SizedBox(
-              width: 300,
-              child: ScrollTextsWidget(
-                texts: ['Short sample text that scrolls across the screen.'],
-                renderMode: ScrollTextRenderMode.streaming,
+        // Rebuild with streaming mode again mid-scroll
+        await tester.pumpWidget(
+          const MaterialApp(
+            home: Scaffold(
+              body: SizedBox(
+                width: 300,
+                child: ScrollTextsWidget(
+                  texts: ['Short sample text that scrolls across the screen.'],
+                  renderMode: ScrollTextRenderMode.streaming,
+                ),
               ),
             ),
           ),
-        ),
-      );
-      await tester.pump(const Duration(milliseconds: 300));
-      expect(tester.takeException(), isNull);
+        );
+        await tester.pump(const Duration(milliseconds: 300));
+        expect(tester.takeException(), isNull);
 
-      // Rebuild with auto mode
-      await tester.pumpWidget(
-        const MaterialApp(
-          home: Scaffold(
-            body: SizedBox(
-              width: 300,
-              child: ScrollTextsWidget(
-                texts: ['Short sample text that scrolls across the screen.'],
-                renderMode: ScrollTextRenderMode.auto,
+        // Rebuild with auto mode
+        await tester.pumpWidget(
+          const MaterialApp(
+            home: Scaffold(
+              body: SizedBox(
+                width: 300,
+                child: ScrollTextsWidget(
+                  texts: ['Short sample text that scrolls across the screen.'],
+                  renderMode: ScrollTextRenderMode.auto,
+                ),
               ),
             ),
           ),
-        ),
-      );
-      await tester.pump(const Duration(milliseconds: 300));
-      expect(tester.takeException(), isNull);
-    });
+        );
+        await tester.pump(const Duration(milliseconds: 300));
+        expect(tester.takeException(), isNull);
+      },
+    );
 
-    testWidgets('respects initialDelay before starting initial scroll',
-        (tester) async {
+    testWidgets('respects initialDelay before starting initial scroll', (
+      tester,
+    ) async {
       final controller = ScrollTextsController();
 
       await tester.pumpWidget(
