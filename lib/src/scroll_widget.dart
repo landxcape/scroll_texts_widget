@@ -29,6 +29,10 @@ class ScrollTextsWidget extends StatefulWidget {
   /// before the next text begins its scroll.
   final Duration pauseDuration;
 
+  /// Optional duration to wait before beginning the initial scroll of the first text.
+  /// Defaults to [Duration.zero].
+  final Duration initialDelay;
+
   /// The direction the text should be laid out and scrolled.
   /// Defaults to [TextDirection.ltr] (Left-to-Right scrolling).
   final TextDirection textDirection;
@@ -60,6 +64,7 @@ class ScrollTextsWidget extends StatefulWidget {
     this.textStyle = const TextStyle(fontSize: 18.0, color: Colors.black),
     this.scrollSpeed = 50.0,
     this.pauseDuration = const Duration(seconds: 2),
+    this.initialDelay = Duration.zero,
     this.textDirection = TextDirection.ltr,
     this.renderMode = ScrollTextRenderMode.auto,
     this.repeat = true,
@@ -132,7 +137,17 @@ class _ScrollTextsWidgetState extends State<ScrollTextsWidget>
     if (widget.texts.isNotEmpty) {
       _prepareActiveText();
       if (!_isManuallyPaused) {
-        _ticker?.start();
+        if (widget.initialDelay > Duration.zero) {
+          Future<void>.delayed(widget.initialDelay, () {
+            if (mounted &&
+                !_isManuallyPaused &&
+                (_ticker?.isTicking == false)) {
+              _ticker?.start();
+            }
+          });
+        } else {
+          _ticker?.start();
+        }
       }
     }
   }

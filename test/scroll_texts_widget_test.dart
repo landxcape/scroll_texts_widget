@@ -321,5 +321,35 @@ void main() {
       await tester.pump(const Duration(milliseconds: 300));
       expect(tester.takeException(), isNull);
     });
+
+    testWidgets('respects initialDelay before starting initial scroll',
+        (tester) async {
+      final controller = ScrollTextsController();
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: SizedBox(
+              width: 300,
+              child: ScrollTextsWidget(
+                texts: const ['Announcement with initial delay'],
+                controller: controller,
+                initialDelay: const Duration(milliseconds: 500),
+                scrollSpeed: 100.0,
+              ),
+            ),
+          ),
+        ),
+      );
+
+      // During initialDelay, offset should remain 0
+      await tester.pump(const Duration(milliseconds: 200));
+      expect(controller.offset, 0.0);
+
+      // Wait past initialDelay (500ms total)
+      await tester.pump(const Duration(milliseconds: 350));
+      await tester.pump(const Duration(milliseconds: 100));
+      expect(controller.offset, greaterThan(0.0));
+    });
   });
 }

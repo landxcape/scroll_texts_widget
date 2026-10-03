@@ -99,7 +99,8 @@ ScrollTextsWidget(
 | `texts` | `List<String>` | **Required** | The list of strings to cycle and scroll through. |
 | `controller` | `ScrollTextsController?` | `null` | Optional controller for reading position and programmatic playback/seeking. |
 | `scrollSpeed` | `double` | `50.0` | Velocity in pixels per second (px/s). |
-| `pauseDuration` | `Duration` | `Duration(seconds: 2)` | Duration to pause after a text exits before the next starts. |
+| `pauseDuration` | `Duration` | `Duration(seconds: 2)` | Duration to pause after a text exits before the next text starts. |
+| `initialDelay` | `Duration` | `Duration.zero` | Optional delay before the very first text begins scrolling. |
 | `repeat` | `bool` | `true` | Whether to continuously loop through the text playlist. |
 | `renderMode` | `ScrollTextRenderMode` | `.auto` | Rendering strategy: `.auto`, `.cached`, or `.streaming`. |
 | `textStyle` | `TextStyle` | `18px black` | Font style applied to the scrolling text. |
