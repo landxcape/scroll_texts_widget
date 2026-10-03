@@ -1,13 +1,17 @@
 import 'package:flutter/foundation.dart';
+import 'render_mode.dart';
 
 /// A controller for a `ScrollTextsWidget`.
 ///
-/// Can be used to read current scroll offset and text index, pause/resume,
-/// or jump to specific positions in the scrolling playlist.
+/// Can be used to read current scroll offset, progress, active text index,
+/// effective render mode, pause/resume, or jump to specific positions in the
+/// scrolling playlist.
 class ScrollTextsController extends ChangeNotifier {
   double _offset;
   int _currentTextIndex;
   bool _isPaused;
+  ScrollTextRenderMode _effectiveRenderMode;
+  double _maxScrollExtent;
 
   void Function(double offset)? onJumpToRequested;
   void Function(int index, double offset)? onJumpToTextRequested;
@@ -18,12 +22,30 @@ class ScrollTextsController extends ChangeNotifier {
     double initialScrollOffset = 0.0,
     int initialTextIndex = 0,
     bool initialPaused = false,
+    ScrollTextRenderMode initialRenderMode = ScrollTextRenderMode.cached,
+    double initialMaxScrollExtent = 0.0,
   }) : _offset = initialScrollOffset,
        _currentTextIndex = initialTextIndex,
-       _isPaused = initialPaused;
+       _isPaused = initialPaused,
+       _effectiveRenderMode = initialRenderMode,
+       _maxScrollExtent = initialMaxScrollExtent;
 
   /// The current scroll offset in pixels.
   double get offset => _offset;
+
+  /// The total scroll distance for the currently active text.
+  double get maxScrollExtent => _maxScrollExtent;
+
+  /// The normalized scroll progress of the active text from 0.0 to 1.0.
+  double get progress => (_maxScrollExtent > 0.0 && _maxScrollExtent.isFinite)
+      ? (_offset / _maxScrollExtent).clamp(0.0, 1.0)
+      : 0.0;
+
+  /// The active render mode currently selected and utilized by the engine.
+  ///
+  /// When [ScrollTextsWidget.renderMode] is set to [ScrollTextRenderMode.auto],
+  /// this reveals whether [cached] or [streaming] is actively engaged.
+  ScrollTextRenderMode get effectiveRenderMode => _effectiveRenderMode;
 
   /// The index of the currently active text string in the playlist.
   int get currentTextIndex => _currentTextIndex;
@@ -36,14 +58,25 @@ class ScrollTextsController extends ChangeNotifier {
     required double offset,
     required int textIndex,
     required bool isPaused,
+    ScrollTextRenderMode? effectiveRenderMode,
+    double? maxScrollExtent,
   }) {
     final changed =
         _offset != offset ||
         _currentTextIndex != textIndex ||
-        _isPaused != isPaused;
+        _isPaused != isPaused ||
+        (effectiveRenderMode != null &&
+            _effectiveRenderMode != effectiveRenderMode) ||
+        (maxScrollExtent != null && _maxScrollExtent != maxScrollExtent);
     _offset = offset;
     _currentTextIndex = textIndex;
     _isPaused = isPaused;
+    if (effectiveRenderMode != null) {
+      _effectiveRenderMode = effectiveRenderMode;
+    }
+    if (maxScrollExtent != null) {
+      _maxScrollExtent = maxScrollExtent;
+    }
     if (changed) {
       notifyListeners();
     }

@@ -130,12 +130,22 @@ class _MyMarqueeAppState extends State<MyMarqueeApp> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              'Offset: ${_controller.offset.toStringAsFixed(1)} px',
+                              'Position: ${_controller.offset.toStringAsFixed(1)} / ${_controller.maxScrollExtent.toStringAsFixed(1)} px (${(_controller.progress * 100).toStringAsFixed(1)}%)',
                               style: const TextStyle(fontFamily: 'monospace'),
                             ),
                             Text(
-                              'Active Text: #${_controller.currentTextIndex + 1} of ${_currentTexts.length}',
+                              'Active Text: #${_controller.currentTextIndex + 1} of ${_currentTexts.length} (${_currentTexts.isNotEmpty && _controller.currentTextIndex < _currentTexts.length ? _currentTexts[_controller.currentTextIndex].length : 0} chars)',
                               style: const TextStyle(fontFamily: 'monospace'),
+                            ),
+                            Text(
+                              'Render Mode: ${_renderMode == ScrollTextRenderMode.auto ? 'Auto ➔ ${_controller.effectiveRenderMode.name.toUpperCase()} (auto-selected)' : _renderMode.name.toUpperCase()}',
+                              style: TextStyle(
+                                fontFamily: 'monospace',
+                                fontWeight: FontWeight.bold,
+                                color: _renderMode == ScrollTextRenderMode.auto
+                                    ? Colors.deepPurple
+                                    : null,
+                              ),
                             ),
                             Text(
                               'State: ${_controller.isPaused ? 'Paused ⏸️' : 'Scrolling ▶️'}',

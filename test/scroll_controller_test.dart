@@ -47,5 +47,24 @@ void main() {
       expect(controller.currentTextIndex, 3);
       expect(controller.offset, 40.0);
     });
+
+    test('calculates progress and tracks effectiveRenderMode', () {
+      final controller = ScrollTextsController();
+      expect(controller.progress, 0.0);
+      expect(controller.effectiveRenderMode, ScrollTextRenderMode.cached);
+
+      controller.updateState(
+        offset: 250.0,
+        textIndex: 0,
+        isPaused: false,
+        maxScrollExtent: 1000.0,
+        effectiveRenderMode: ScrollTextRenderMode.streaming,
+      );
+
+      expect(controller.offset, 250.0);
+      expect(controller.maxScrollExtent, 1000.0);
+      expect(controller.progress, 0.25);
+      expect(controller.effectiveRenderMode, ScrollTextRenderMode.streaming);
+    });
   });
 }

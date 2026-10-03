@@ -115,6 +115,9 @@ ScrollTextsWidget(
 | Member | Type | Description |
 | :--- | :--- | :--- |
 | `offset` | `double` (getter) | The current scroll offset in pixels. |
+| `maxScrollExtent` | `double` (getter) | The total scroll distance for the active text. |
+| `progress` | `double` (getter) | Normalized scroll progress from `0.0` to `1.0`. |
+| `effectiveRenderMode` | `ScrollTextRenderMode` (getter) | The active render mode engaged (`cached` or `streaming`), useful when `auto` is selected. |
 | `currentTextIndex` | `int` (getter) | The index of the active text in the playlist. |
 | `isPaused` | `bool` (getter) | Whether scrolling is currently paused. |
 | `pause()` | `void` | Pauses the scrolling animation. |

@@ -153,12 +153,31 @@ class _ScrollTextsWidgetState extends State<ScrollTextsWidget>
     }
   }
 
-  void _attachController() {
+  void _syncControllerState({bool? isPaused}) {
+    final currentText =
+        widget.texts.isNotEmpty &&
+            _currentTextIndex >= 0 &&
+            _currentTextIndex < widget.texts.length
+        ? widget.texts[_currentTextIndex]
+        : '';
+    final bool isStreaming = _isStreamingActive(currentText);
+    final double totalDistance = isStreaming
+        ? _streamingTotalDistance
+        : (_cachedTextWidth + _containerWidth);
+
     _effectiveController.updateState(
       offset: _scrollOffset,
       textIndex: _currentTextIndex,
-      isPaused: _isManuallyPaused,
+      isPaused: isPaused ?? _isManuallyPaused,
+      effectiveRenderMode: isStreaming
+          ? ScrollTextRenderMode.streaming
+          : ScrollTextRenderMode.cached,
+      maxScrollExtent: totalDistance.isFinite ? totalDistance : 0.0,
     );
+  }
+
+  void _attachController() {
+    _syncControllerState();
     _effectiveController.onJumpToRequested = _handleJumpTo;
     _effectiveController.onJumpToTextRequested = _handleJumpToText;
     _effectiveController.onPauseRequested = _handlePause;
@@ -240,11 +259,7 @@ class _ScrollTextsWidgetState extends State<ScrollTextsWidget>
         ? _streamingTotalDistance
         : (_cachedTextWidth + _containerWidth);
 
-    _effectiveController.updateState(
-      offset: _scrollOffset,
-      textIndex: _currentTextIndex,
-      isPaused: _isManuallyPaused,
-    );
+    _syncControllerState();
     widget.onScrollChanged?.call(_scrollOffset, _currentTextIndex);
 
     if (_scrollOffset >= totalDistance) {
@@ -375,11 +390,7 @@ class _ScrollTextsWidgetState extends State<ScrollTextsWidget>
 
     final bool isLastText = _currentTextIndex >= widget.texts.length - 1;
     if (!widget.repeat && isLastText) {
-      _effectiveController.updateState(
-        offset: _scrollOffset,
-        textIndex: _currentTextIndex,
-        isPaused: true,
-      );
+      _syncControllerState(isPaused: true);
       if (mounted) {
         setState(() {});
       }
@@ -391,11 +402,7 @@ class _ScrollTextsWidgetState extends State<ScrollTextsWidget>
       _prepareActiveText();
     }
 
-    _effectiveController.updateState(
-      offset: _scrollOffset,
-      textIndex: _currentTextIndex,
-      isPaused: _isManuallyPaused,
-    );
+    _syncControllerState();
 
     if (mounted) {
       setState(() {});
@@ -409,11 +416,7 @@ class _ScrollTextsWidgetState extends State<ScrollTextsWidget>
     if (_isManuallyPaused) return;
 
     _lastElapsedDuration = null;
-    _effectiveController.updateState(
-      offset: _scrollOffset,
-      textIndex: _currentTextIndex,
-      isPaused: false,
-    );
+    _syncControllerState(isPaused: false);
     if (_ticker?.isTicking == false) {
       _ticker?.start();
     }
@@ -427,11 +430,7 @@ class _ScrollTextsWidgetState extends State<ScrollTextsWidget>
     if (_isStreamingActive(currentText)) {
       _rebuildStreamingWindow(_scrollOffset);
     }
-    _effectiveController.updateState(
-      offset: _scrollOffset,
-      textIndex: _currentTextIndex,
-      isPaused: _isManuallyPaused,
-    );
+    _syncControllerState();
   }
 
   void _handleJumpToText(int textIndex, double offset) {
@@ -440,11 +439,7 @@ class _ScrollTextsWidgetState extends State<ScrollTextsWidget>
     _scrollOffset = offset;
     _lastElapsedDuration = null;
     _prepareActiveText();
-    _effectiveController.updateState(
-      offset: _scrollOffset,
-      textIndex: _currentTextIndex,
-      isPaused: _isManuallyPaused,
-    );
+    _syncControllerState();
     if (mounted) {
       setState(() {});
     }
@@ -454,12 +449,14 @@ class _ScrollTextsWidgetState extends State<ScrollTextsWidget>
     _isManuallyPaused = true;
     _ticker?.stop();
     _lastElapsedDuration = null;
+    _syncControllerState();
   }
 
   void _handleResume() {
     if (widget.texts.isEmpty) return;
     _isManuallyPaused = false;
     _lastElapsedDuration = null;
+    _syncControllerState();
     if (_ticker?.isTicking == false) {
       _ticker?.start();
     }
@@ -503,11 +500,7 @@ class _ScrollTextsWidgetState extends State<ScrollTextsWidget>
           _ticker?.start();
         }
       }
-      _effectiveController.updateState(
-        offset: _scrollOffset,
-        textIndex: _currentTextIndex,
-        isPaused: _isManuallyPaused,
-      );
+      _syncControllerState();
       needsRebuild = true;
     }
 
