@@ -90,6 +90,112 @@ ScrollTextsWidget(
 
 ---
 
+## 🍳 Cookbook & Common Recipes
+
+`scroll_texts_widget` adheres strictly to Flutter's **composition philosophy**: rather than bloating the core canvas engine with mouse trackers, gesture disambiguators, or decorative wrappers that penalize mobile and embedded performance, the widget exposes a reactive `ScrollTextsController` so you can compose exactly what you need with zero overhead.
+
+### 1. Pause on Hover (Desktop & Web)
+
+Pause the ticker when the cursor hovers over it, and resume when it leaves:
+
+```dart
+final controller = ScrollTextsController();
+
+MouseRegion(
+  onEnter: (_) => controller.pause(),
+  onExit: (_) => controller.resume(),
+  child: ScrollTextsWidget(
+    texts: myAnnouncements,
+    controller: controller,
+  ),
+);
+```
+
+### 2. Interactive Tappable Headlines
+
+Detect taps on the active headline to navigate or open news details:
+
+```dart
+final controller = ScrollTextsController();
+
+GestureDetector(
+  behavior: HitTestBehavior.opaque,
+  onTap: () {
+    final activeIndex = controller.currentTextIndex;
+    final activeHeadline = myAnnouncements[activeIndex];
+    Navigator.of(context).push(
+      MaterialPageRoute(builder: (_) => ArticlePage(headline: activeHeadline)),
+    );
+  },
+  child: ScrollTextsWidget(
+    texts: myAnnouncements,
+    controller: controller,
+  ),
+);
+```
+
+### 3. Soft Edge Fading (Gradient Fade)
+
+Fade the text seamlessly as it enters and leaves the viewport edges using `ShaderMask`:
+
+```dart
+ShaderMask(
+  shaderCallback: (rect) {
+    return const LinearGradient(
+      begin: Alignment.centerLeft,
+      end: Alignment.centerRight,
+      colors: [
+        Colors.transparent,
+        Colors.black,
+        Colors.black,
+        Colors.transparent,
+      ],
+      stops: [0.0, 0.08, 0.92, 1.0],
+    ).createShader(rect);
+  },
+  blendMode: BlendMode.dstIn,
+  child: ScrollTextsWidget(
+    texts: myAnnouncements,
+  ),
+);
+```
+
+### 4. Platform-Adaptive Composition
+
+Only register `MouseRegion` on desktop and web, keeping iOS, Android, and embedded displays 100% free from mouse-tracker hit testing:
+
+```dart
+import 'package:flutter/foundation.dart';
+
+Widget ticker = ScrollTextsWidget(
+  texts: myAnnouncements,
+  controller: controller,
+);
+
+if (kIsWeb || defaultTargetPlatform == TargetPlatform.macOS || defaultTargetPlatform == TargetPlatform.windows || defaultTargetPlatform == TargetPlatform.linux) {
+  ticker = MouseRegion(
+    onEnter: (_) => controller.pause(),
+    onExit: (_) => controller.resume(),
+    child: ticker,
+  );
+}
+```
+
+---
+
+## ⚡ Architecture & Performance Edge
+
+| Feature | Standard Marquee Packages | `scroll_texts_widget` |
+| :--- | :--- | :--- |
+| **Engine Architecture** | `SingleChildScrollView` + `animateTo()` loop | **Direct `CustomPainter` (`Canvas`) + standalone `Ticker`** |
+| **120Hz ProMotion Stability** | Stutters or resets on rebuilds and physics recalculations | **Microsecond delta-time ($\Delta x = \text{speed} \times \Delta t$)** |
+| **Data Model** | Single `String` only (requires manual concatenation) | **Native `List<String>` playlist with pause intervals** |
+| **Memory on Massive Text** | Freezes UI laying out 50,000px-wide render trees | **Sliding window streaming with $O(\text{viewport})$ memory** |
+| **Lifecycle Overhead** | Forces full widget subtree re-layouts per tick | **Zero widget tree re-layouts during scrolling** |
+| **Inversion of Control** | Hardcoded gestures and hover listeners | **Pure canvas core + reactive controller composition** |
+
+---
+
 ## 📖 API Reference
 
 ### `ScrollTextsWidget` Properties
@@ -134,5 +240,5 @@ Add the following to your `pubspec.yaml` file:
 
 ```yaml
 dependencies:
-  scroll_texts_widget: ^0.1.0
+  scroll_texts_widget: ^0.1.1
 ```

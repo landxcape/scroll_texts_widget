@@ -36,6 +36,9 @@ class _MyMarqueeAppState extends State<MyMarqueeApp> {
   double _pauseSeconds = 1.0;
   bool _repeat = true;
   String _lastCompletedText = 'None yet';
+  bool _pauseOnHover = true;
+  bool _enableTapInspection = true;
+  bool _enableGradientMask = false;
 
   final List<String> _englishTexts = [
     'Welcome to the highly efficient scroll_texts_widget package!',
@@ -76,37 +79,97 @@ class _MyMarqueeAppState extends State<MyMarqueeApp> {
               style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 8),
-            Container(
-              padding: const EdgeInsets.symmetric(vertical: 12.0),
-              decoration: BoxDecoration(
-                color: Colors.blueGrey.shade50,
-                borderRadius: BorderRadius.circular(8.0),
-                border: Border.all(color: Colors.blueGrey.shade200),
-              ),
-              child: ScrollTextsWidget(
-                texts: _currentTexts,
-                controller: _controller,
-                renderMode: _renderMode,
-                textDirection: _textDirection,
-                repeat: _repeat,
-                scrollSpeed: _speed,
-                pauseDuration: Duration(
-                  milliseconds: (_pauseSeconds * 1000).round(),
-                ),
-                onTextCompleted: (index) {
-                  setState(() {
-                    _lastCompletedText = '#${index + 1}';
-                  });
-                },
-                onScrollChanged: (offset, index) {
-                  // Real-time position callback hook
-                },
-                textStyle: const TextStyle(
-                  fontSize: 22.0,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.deepPurple,
-                ),
-              ),
+            Builder(
+              builder: (context) {
+                Widget banner = ScrollTextsWidget(
+                  texts: _currentTexts,
+                  controller: _controller,
+                  renderMode: _renderMode,
+                  textDirection: _textDirection,
+                  repeat: _repeat,
+                  scrollSpeed: _speed,
+                  pauseDuration: Duration(
+                    milliseconds: (_pauseSeconds * 1000).round(),
+                  ),
+                  onTextCompleted: (index) {
+                    setState(() {
+                      _lastCompletedText = '#${index + 1}';
+                    });
+                  },
+                  onScrollChanged: (offset, index) {
+                    // Real-time position callback hook
+                  },
+                  textStyle: const TextStyle(
+                    fontSize: 22.0,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.deepPurple,
+                  ),
+                );
+
+                if (_enableTapInspection) {
+                  banner = GestureDetector(
+                    behavior: HitTestBehavior.opaque,
+                    onTap: () {
+                      final idx = _controller.currentTextIndex;
+                      final text = _currentTexts.isNotEmpty &&
+                              idx >= 0 &&
+                              idx < _currentTexts.length
+                          ? _currentTexts[idx]
+                          : '';
+                      ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content:
+                              Text('Tapped announcement #${idx + 1}: $text'),
+                          duration: const Duration(seconds: 2),
+                        ),
+                      );
+                    },
+                    child: banner,
+                  );
+                }
+
+                if (_pauseOnHover) {
+                  banner = MouseRegion(
+                    cursor: _enableTapInspection
+                        ? SystemMouseCursors.click
+                        : MouseCursor.defer,
+                    onEnter: (_) => _controller.pause(),
+                    onExit: (_) => _controller.resume(),
+                    child: banner,
+                  );
+                }
+
+                if (_enableGradientMask) {
+                  banner = ShaderMask(
+                    shaderCallback: (rect) {
+                      return const LinearGradient(
+                        begin: Alignment.centerLeft,
+                        end: Alignment.centerRight,
+                        colors: [
+                          Colors.transparent,
+                          Colors.black,
+                          Colors.black,
+                          Colors.transparent,
+                        ],
+                        stops: [0.0, 0.08, 0.92, 1.0],
+                      ).createShader(rect);
+                    },
+                    blendMode: BlendMode.dstIn,
+                    child: banner,
+                  );
+                }
+
+                return Container(
+                  padding: const EdgeInsets.symmetric(vertical: 12.0),
+                  decoration: BoxDecoration(
+                    color: Colors.blueGrey.shade50,
+                    borderRadius: BorderRadius.circular(8.0),
+                    border: Border.all(color: Colors.blueGrey.shade200),
+                  ),
+                  child: banner,
+                );
+              },
             ),
             const SizedBox(height: 24),
             Card(
@@ -315,6 +378,51 @@ class _MyMarqueeAppState extends State<MyMarqueeApp> {
                       onChanged: (val) {
                         setState(() {
                           _repeat = val;
+                        });
+                      },
+                      contentPadding: EdgeInsets.zero,
+                    ),
+                    const Divider(height: 24),
+                    const Text(
+                      'Interactive Recipes (Composition)',
+                      style: TextStyle(fontWeight: FontWeight.w600),
+                    ),
+                    const SizedBox(height: 8),
+                    SwitchListTile(
+                      title: const Text('Pause on Hover (MouseRegion)'),
+                      subtitle: const Text(
+                        'Hover mouse over marquee on Desktop/Web to pause',
+                      ),
+                      value: _pauseOnHover,
+                      onChanged: (val) {
+                        setState(() {
+                          _pauseOnHover = val;
+                        });
+                      },
+                      contentPadding: EdgeInsets.zero,
+                    ),
+                    SwitchListTile(
+                      title: const Text('Tap to Inspect (GestureDetector)'),
+                      subtitle: const Text(
+                        'Tap the marquee to inspect active announcement in SnackBar',
+                      ),
+                      value: _enableTapInspection,
+                      onChanged: (val) {
+                        setState(() {
+                          _enableTapInspection = val;
+                        });
+                      },
+                      contentPadding: EdgeInsets.zero,
+                    ),
+                    SwitchListTile(
+                      title: const Text('Soft Edge Fade (ShaderMask)'),
+                      subtitle: const Text(
+                        'Applies gradient mask to fade text as it enters and exits edges',
+                      ),
+                      value: _enableGradientMask,
+                      onChanged: (val) {
+                        setState(() {
+                          _enableGradientMask = val;
                         });
                       },
                       contentPadding: EdgeInsets.zero,
