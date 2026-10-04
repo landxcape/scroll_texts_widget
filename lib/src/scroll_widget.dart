@@ -433,6 +433,9 @@ class _ScrollTextsWidgetState extends State<ScrollTextsWidget>
       _rebuildStreamingWindow(_scrollOffset);
     }
     _syncControllerState();
+    if (mounted) {
+      setState(() {});
+    }
   }
 
   void _handleJumpToText(int textIndex, double offset) {
@@ -452,6 +455,9 @@ class _ScrollTextsWidgetState extends State<ScrollTextsWidget>
     _ticker?.stop();
     _lastElapsedDuration = null;
     _syncControllerState();
+    if (mounted) {
+      setState(() {});
+    }
   }
 
   void _handleResume() {
@@ -461,6 +467,9 @@ class _ScrollTextsWidgetState extends State<ScrollTextsWidget>
     _syncControllerState();
     if (_ticker?.isTicking == false) {
       _ticker?.start();
+    }
+    if (mounted) {
+      setState(() {});
     }
   }
 

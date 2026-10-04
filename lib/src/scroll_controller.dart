@@ -94,16 +94,16 @@ class ScrollTextsController extends ChangeNotifier {
   /// Jumps the current text to the given pixel [offset].
   void jumpTo(double offset) {
     _offset = offset;
-    notifyListeners();
     onJumpToRequested?.call(offset);
+    notifyListeners();
   }
 
   /// Jumps to the text at [textIndex] with an optional starting pixel [offset].
   void jumpToText(int textIndex, {double offset = 0.0}) {
     _currentTextIndex = textIndex;
     _offset = offset;
-    notifyListeners();
     onJumpToTextRequested?.call(textIndex, offset);
+    notifyListeners();
   }
 
   /// Pauses scrolling.

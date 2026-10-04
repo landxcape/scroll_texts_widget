@@ -63,6 +63,9 @@ class StreamingScrollPainter extends CustomPainter {
   }
 
   @override
+  bool? hitTest(Offset position) => true;
+
+  @override
   bool shouldRepaint(covariant StreamingScrollPainter oldDelegate) {
     return true;
   }

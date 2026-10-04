@@ -37,6 +37,9 @@ class CachedScrollPainter extends CustomPainter {
   }
 
   @override
+  bool? hitTest(Offset position) => true;
+
+  @override
   bool shouldRepaint(covariant CachedScrollPainter oldDelegate) {
     return oldDelegate.scrollOffset != scrollOffset ||
         oldDelegate.controller != controller ||

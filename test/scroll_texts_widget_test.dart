@@ -356,5 +356,35 @@ void main() {
       await tester.pump(const Duration(milliseconds: 100));
       expect(controller.offset, greaterThan(0.0));
     });
+
+    testWidgets('CustomPainter responds to hit testing and controller jump when paused', (
+      tester,
+    ) async {
+      final controller = ScrollTextsController();
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: SizedBox(
+              width: 300,
+              child: ScrollTextsWidget(
+                texts: const ['Hit testing and jump verification text'],
+                controller: controller,
+                scrollSpeed: 50.0,
+              ),
+            ),
+          ),
+        ),
+      );
+
+      await tester.pump(const Duration(milliseconds: 50));
+      controller.pause();
+      await tester.pump(const Duration(milliseconds: 50));
+      expect(controller.isPaused, isTrue);
+
+      controller.jumpTo(120.0);
+      await tester.pump(const Duration(milliseconds: 50));
+      expect(controller.offset, 120.0);
+    });
   });
 }

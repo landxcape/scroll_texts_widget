@@ -29,6 +29,7 @@ class MyMarqueeApp extends StatefulWidget {
 }
 
 class _MyMarqueeAppState extends State<MyMarqueeApp> {
+  final GlobalKey _marqueeKey = GlobalKey();
   final ScrollTextsController _controller = ScrollTextsController();
   ScrollTextRenderMode _renderMode = ScrollTextRenderMode.auto;
   TextDirection _textDirection = TextDirection.ltr;
@@ -39,6 +40,7 @@ class _MyMarqueeAppState extends State<MyMarqueeApp> {
   bool _pauseOnHover = true;
   bool _enableTapInspection = true;
   bool _enableGradientMask = false;
+  bool _isUserPaused = false;
 
   final List<String> _englishTexts = [
     'Welcome to the highly efficient scroll_texts_widget package!',
@@ -69,110 +71,171 @@ class _MyMarqueeAppState extends State<MyMarqueeApp> {
         title: const Text('Efficient Marquee Demo'),
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            const Text(
-              'Live Marquee Banner',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 8),
-            Builder(
-              builder: (context) {
-                Widget banner = ScrollTextsWidget(
-                  texts: _currentTexts,
-                  controller: _controller,
-                  renderMode: _renderMode,
-                  textDirection: _textDirection,
-                  repeat: _repeat,
-                  scrollSpeed: _speed,
-                  pauseDuration: Duration(
-                    milliseconds: (_pauseSeconds * 1000).round(),
-                  ),
-                  onTextCompleted: (index) {
-                    setState(() {
-                      _lastCompletedText = '#${index + 1}';
-                    });
-                  },
-                  onScrollChanged: (offset, index) {
-                    // Real-time position callback hook
-                  },
-                  textStyle: const TextStyle(
-                    fontSize: 22.0,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.deepPurple,
-                  ),
-                );
-
-                if (_enableTapInspection) {
-                  banner = GestureDetector(
-                    behavior: HitTestBehavior.opaque,
-                    onTap: () {
-                      final idx = _controller.currentTextIndex;
-                      final text = _currentTexts.isNotEmpty &&
-                              idx >= 0 &&
-                              idx < _currentTexts.length
-                          ? _currentTexts[idx]
-                          : '';
-                      ScaffoldMessenger.of(context).hideCurrentSnackBar();
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content:
-                              Text('Tapped announcement #${idx + 1}: $text'),
-                          duration: const Duration(seconds: 2),
+      body: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Material(
+            elevation: 2,
+            color: Theme.of(context).colorScheme.surface,
+            child: SafeArea(
+              bottom: false,
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(16.0, 12.0, 16.0, 12.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8.0,
+                            vertical: 3.0,
+                          ),
+                          decoration: BoxDecoration(
+                            color: Colors.deepPurple,
+                            borderRadius: BorderRadius.circular(4.0),
+                          ),
+                          child: const Text(
+                            'LIVE TICKER',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 11.0,
+                              fontWeight: FontWeight.bold,
+                              letterSpacing: 0.5,
+                            ),
+                          ),
                         ),
-                      );
-                    },
-                    child: banner,
-                  );
-                }
+                        const SizedBox(width: 8),
+                        const Text(
+                          'Pinned Preview',
+                          style: TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.black54,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    Builder(
+                      builder: (context) {
+                        Widget banner = ScrollTextsWidget(
+                          key: _marqueeKey,
+                          texts: _currentTexts,
+                          controller: _controller,
+                          renderMode: _renderMode,
+                          textDirection: _textDirection,
+                          repeat: _repeat,
+                          scrollSpeed: _speed,
+                          pauseDuration: Duration(
+                            milliseconds: (_pauseSeconds * 1000).round(),
+                          ),
+                          onTextCompleted: (index) {
+                            setState(() {
+                              _lastCompletedText = '#${index + 1}';
+                            });
+                          },
+                          onScrollChanged: (offset, index) {
+                            // Real-time position callback hook
+                          },
+                          textStyle: const TextStyle(
+                            fontSize: 22.0,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.deepPurple,
+                          ),
+                        );
 
-                if (_pauseOnHover) {
-                  banner = MouseRegion(
-                    cursor: _enableTapInspection
-                        ? SystemMouseCursors.click
-                        : MouseCursor.defer,
-                    onEnter: (_) => _controller.pause(),
-                    onExit: (_) => _controller.resume(),
-                    child: banner,
-                  );
-                }
+                        // Always keep GestureDetector in tree to maintain structure
+                        banner = GestureDetector(
+                          behavior: HitTestBehavior.opaque,
+                          onTap: () {
+                            if (!_enableTapInspection) return;
+                            final idx = _controller.currentTextIndex;
+                            final text = _currentTexts.isNotEmpty &&
+                                    idx >= 0 &&
+                                    idx < _currentTexts.length
+                                ? _currentTexts[idx]
+                                : '';
+                            ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text(
+                                  'Tapped announcement #${idx + 1}: $text',
+                                ),
+                                duration: const Duration(seconds: 2),
+                              ),
+                            );
+                          },
+                          child: banner,
+                        );
 
-                if (_enableGradientMask) {
-                  banner = ShaderMask(
-                    shaderCallback: (rect) {
-                      return const LinearGradient(
-                        begin: Alignment.centerLeft,
-                        end: Alignment.centerRight,
-                        colors: [
-                          Colors.transparent,
-                          Colors.black,
-                          Colors.black,
-                          Colors.transparent,
-                        ],
-                        stops: [0.0, 0.08, 0.92, 1.0],
-                      ).createShader(rect);
-                    },
-                    blendMode: BlendMode.dstIn,
-                    child: banner,
-                  );
-                }
+                        // Always keep ShaderMask in tree to maintain structure
+                        banner = ShaderMask(
+                          shaderCallback: (rect) {
+                            if (!_enableGradientMask) {
+                              return const LinearGradient(
+                                colors: [Colors.black, Colors.black],
+                              ).createShader(rect);
+                            }
+                            return const LinearGradient(
+                              begin: Alignment.centerLeft,
+                              end: Alignment.centerRight,
+                              colors: [
+                                Colors.transparent,
+                                Colors.black,
+                                Colors.black,
+                                Colors.transparent,
+                              ],
+                              stops: [0.0, 0.08, 0.92, 1.0],
+                            ).createShader(rect);
+                          },
+                          blendMode: BlendMode.dstIn,
+                          child: banner,
+                        );
 
-                return Container(
-                  padding: const EdgeInsets.symmetric(vertical: 12.0),
-                  decoration: BoxDecoration(
-                    color: Colors.blueGrey.shade50,
-                    borderRadius: BorderRadius.circular(8.0),
-                    border: Border.all(color: Colors.blueGrey.shade200),
-                  ),
-                  child: banner,
-                );
-              },
+                        final bannerCard = Container(
+                          padding: const EdgeInsets.symmetric(vertical: 12.0),
+                          decoration: BoxDecoration(
+                            color: Colors.blueGrey.shade50,
+                            borderRadius: BorderRadius.circular(8.0),
+                            border: Border.all(color: Colors.blueGrey.shade200),
+                          ),
+                          child: banner,
+                        );
+
+                        // Always keep MouseRegion in tree to maintain structure
+                        return MouseRegion(
+                          hitTestBehavior: HitTestBehavior.opaque,
+                          cursor: _enableTapInspection
+                              ? SystemMouseCursors.click
+                              : MouseCursor.defer,
+                          onEnter: (_) {
+                            if (_pauseOnHover) {
+                              _controller.pause();
+                            }
+                          },
+                          onExit: (_) {
+                            if (_pauseOnHover && !_isUserPaused) {
+                              _controller.resume();
+                            }
+                          },
+                          child: bannerCard,
+                        );
+                      },
+                    ),
+                  ],
+                ),
+              ),
             ),
-            const SizedBox(height: 24),
-            Card(
+          ),
+          Expanded(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Card(
               child: Padding(
                 padding: const EdgeInsets.all(16.0),
                 child: Column(
@@ -233,7 +296,15 @@ class _MyMarqueeAppState extends State<MyMarqueeApp> {
                       runSpacing: 8,
                       children: [
                         FilledButton.icon(
-                          onPressed: () => _controller.togglePause(),
+                          onPressed: () {
+                            if (_controller.isPaused) {
+                              _isUserPaused = false;
+                              _controller.resume();
+                            } else {
+                              _isUserPaused = true;
+                              _controller.pause();
+                            }
+                          },
                           icon: ListenableBuilder(
                             listenable: _controller,
                             builder: (context, _) => Icon(
@@ -253,8 +324,9 @@ class _MyMarqueeAppState extends State<MyMarqueeApp> {
                           child: const Text('Reset (0px)'),
                         ),
                         OutlinedButton(
-                          onPressed: () => _controller.jumpTo(250.0),
-                          child: const Text('Jump 250px'),
+                          onPressed: () =>
+                              _controller.jumpTo(_controller.offset + 250.0),
+                          child: const Text('Jump +250px'),
                         ),
                         OutlinedButton(
                           onPressed: () {
@@ -434,6 +506,9 @@ class _MyMarqueeAppState extends State<MyMarqueeApp> {
           ],
         ),
       ),
-    );
+    ),
+    ],
+  ),
+);
   }
 }

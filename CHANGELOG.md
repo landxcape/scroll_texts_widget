@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.1.2
+
+- Added comprehensive Cookbook & Common Recipes to documentation (Pause on Hover, Tappable Headlines, Soft Edge Fading, Platform-Adaptive Composition).
+- Enhanced example application with a pinned/sticky live ticker preview and interactive recipe switches.
+- Added architecture & performance comparison detailing Canvas rendering vs. standard ScrollView approaches.
+- Modernized installation instructions with CLI command and latest-version placeholder.
+- Added hit-testing support to CustomPainters for transparent composition with `MouseRegion` and `GestureDetector`.
+- Improved playback controller responsiveness and state synchronization during paused jumps.
+
 ## 0.1.1
 
 - Enhanced package discoverability and category indexing on pub.dev.

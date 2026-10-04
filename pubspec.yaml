@@ -1,6 +1,6 @@
 name: scroll_texts_widget
 description: "Smooth horizontal marquee scrolling text ticker for Flutter. Supports streaming for long texts, cached rendering, and pause/progress controls."
-version: 0.1.1
+version: 0.1.2
 homepage: https://github.com/landxcape/scroll_texts_widget
 repository: https://github.com/landxcape/scroll_texts_widget
 issue_tracker: https://github.com/landxcape/scroll_texts_widget/issues
