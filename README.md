@@ -236,9 +236,15 @@ if (kIsWeb || defaultTargetPlatform == TargetPlatform.macOS || defaultTargetPlat
 
 ## 🛠️ Installation
 
-Add the following to your `pubspec.yaml` file:
+Add the package via the Flutter CLI:
+
+```bash
+flutter pub add scroll_texts_widget
+```
+
+Or add it manually to your `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  scroll_texts_widget: ^0.1.1
+  scroll_texts_widget: ^<latest-version>
 ```
