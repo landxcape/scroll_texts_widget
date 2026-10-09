@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.3
+
+- Documentation and README refinements.
+
 ## 0.1.2
 
 - Added comprehensive Cookbook & Common Recipes to documentation (Pause on Hover, Tappable Headlines, Soft Edge Fading, Platform-Adaptive Composition).
