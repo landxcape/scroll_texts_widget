@@ -1,20 +1,19 @@
 # scroll_texts_widget
 
-A highly efficient and modular Flutter widget for creating scrolling marquee text banners.
+A horizontal marquee text banner widget for Flutter.
 
-Unlike standard marquee widgets that struggle with long strings, force full widget-tree rebuilds, or warp speeds due to device animation scales, `scroll_texts_widget` uses **direct Canvas rendering via `CustomPainter` and a standalone `Ticker`** to guarantee smooth, 60/120fps scrolling.
+It renders text directly to the canvas and uses a timer ticker so text scrolls at a steady speed regardless of display refresh rate or screen size.
 
-## ✨ Key Features
+## Features
 
-* **🪟 Dual Render Modes:**
-  * **Cached Mode:** Measures text once and clips on the GPU. Delivers 100% typographic fidelity (BiDi, complex scripts, kerning) with zero per-frame layout overhead.
-  * **Streaming Mode:** Employs a sliding window algorithm that measures and renders **only** the words/chunks currently visible inside the viewport box. Retains strictly $O(\text{viewport})$ memory and eliminates UI freezes even with 50,000-word strings.
-  * **Auto Mode (Default):** Automatically chooses the best mode based on string length.
-* **🎮 Full Controller Support:** Use `ScrollTextsController` to programmatically play, pause, toggle pause, read the exact pixel offset, inspect the active text index, or jump directly to any position or announcement in the list.
-* **⏱️ Consistent Velocity (Pixels/Sec):** Configured via `scrollSpeed` (px/s), guaranteeing uniform visual velocity regardless of text length.
-* **⚙️ Platform-Independent Frame Timing:** Uses a direct `Ticker` with microsecond delta-time tracking ($\Delta x = \text{speed} \times \Delta t$), making the scroll rate immune to OS animation scaling and ProMotion 120Hz refresh rates.
-* **🌍 First-Class RTL Support:** Full support for `TextDirection.rtl` (Arabic, Hebrew) adjusting layout and scrolling direction.
-* **📏 Intrinsic Auto-Sizing:** Measures font metrics upfront to match the exact text height, preventing layout overflow errors.
+* **Dual Render Modes:**
+  * **Cached Mode:** Measures text once upfront. Best for short-to-medium announcements.
+  * **Streaming Mode:** Measures and draws only the words currently on screen. Helpful for very long texts.
+  * **Auto Mode (Default):** Picks between cached and streaming based on text length.
+* **Playback Controller:** Use `ScrollTextsController` to play, pause, jump to an offset, or skip to a specific item in the list.
+* **Consistent Speed:** Set the scroll speed in pixels per second so it moves at the same pace no matter how long the text is.
+* **RTL Support:** Full support for right-to-left languages like Arabic and Hebrew.
+* **Auto Height:** Automatically sizes its height to match the text style.
 
 ---
 
@@ -90,9 +89,9 @@ ScrollTextsWidget(
 
 ---
 
-## 🍳 Cookbook & Common Recipes
-
-`scroll_texts_widget` adheres strictly to Flutter's **composition philosophy**: rather than bloating the core canvas engine with mouse trackers, gesture disambiguators, or decorative wrappers that penalize mobile and embedded performance, the widget exposes a reactive `ScrollTextsController` so you can compose exactly what you need with zero overhead.
+## Recipes
+ 
+Because this widget focuses on rendering the scrolling text, you can add interactions like hover, tap, or edge fading using standard Flutter widgets (`MouseRegion`, `GestureDetector`, `ShaderMask`).
 
 ### 1. Pause on Hover (Desktop & Web)
 
@@ -183,16 +182,12 @@ if (kIsWeb || defaultTargetPlatform == TargetPlatform.macOS || defaultTargetPlat
 
 ---
 
-## ⚡ Architecture & Performance Edge
+## How It Works
 
-| Feature | Standard Marquee Packages | `scroll_texts_widget` |
-| :--- | :--- | :--- |
-| **Engine Architecture** | `SingleChildScrollView` + `animateTo()` loop | **Direct `CustomPainter` (`Canvas`) + standalone `Ticker`** |
-| **120Hz ProMotion Stability** | Stutters or resets on rebuilds and physics recalculations | **Microsecond delta-time ($\Delta x = \text{speed} \times \Delta t$)** |
-| **Data Model** | Single `String` only (requires manual concatenation) | **Native `List<String>` playlist with pause intervals** |
-| **Memory on Massive Text** | Freezes UI laying out 50,000px-wide render trees | **Sliding window streaming with $O(\text{viewport})$ memory** |
-| **Lifecycle Overhead** | Forces full widget subtree re-layouts per tick | **Zero widget tree re-layouts during scrolling** |
-| **Inversion of Control** | Hardcoded gestures and hover listeners | **Pure canvas core + reactive controller composition** |
+* **Canvas Drawing:** Uses `CustomPainter` to draw text directly to the canvas instead of scrolling a widget tree.
+* **Frame Timing:** Updates pixel position on each tick using elapsed time, keeping the speed steady across different screen refresh rates.
+* **Multiple Texts:** Takes a list of strings and automatically cycles through them with a configurable pause between each.
+* **Long Text Handling:** Uses a sliding viewport approach for unusually long texts so only the visible portion is laid out at any moment.
 
 ---
 
