@@ -2,7 +2,13 @@
 
 A horizontal marquee text banner widget for Flutter.
 
+[![pub package](https://img.shields.io/pub/v/scroll_texts_widget.svg)](https://pub.dev/packages/scroll_texts_widget)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+[![Interactive Sandbox](https://img.shields.io/badge/demo-interactive%20sandbox-0284C7.svg)](https://shakyapurna.com.np/#/lab/scroll_texts_widget/sandbox)
+
 It renders text directly to the canvas and uses a timer ticker so text scrolls at a steady speed regardless of display refresh rate or screen size.
+
+An [interactive sandbox](https://shakyapurna.com.np/#/lab/scroll_texts_widget/sandbox) is available to test streaming vs. cached rendering modes and speed controls in real-time.
 
 ## Features
 
@@ -17,7 +23,17 @@ It renders text directly to the canvas and uses a timer ticker so text scrolls a
 
 ---
 
-## 💻 Usage
+## Installation
+
+Add the package to your project:
+
+```bash
+flutter pub add scroll_texts_widget
+```
+
+---
+
+## Usage
 
 ### Basic Example
 
@@ -191,7 +207,7 @@ if (kIsWeb || defaultTargetPlatform == TargetPlatform.macOS || defaultTargetPlat
 
 ---
 
-## 📖 API Reference
+## API Reference
 
 ### `ScrollTextsWidget` Properties
 
@@ -226,20 +242,3 @@ if (kIsWeb || defaultTargetPlatform == TargetPlatform.macOS || defaultTargetPlat
 | `togglePause()` | `void` | Toggles between paused and scrolling states. |
 | `jumpTo(double offset)` | `void` | Instantly jumps the active text to the given pixel offset. |
 | `jumpToText(int textIndex, {double offset = 0.0})` | `void` | Jumps to a specific text in `texts` at an optional starting offset. |
-
----
-
-## 🛠️ Installation
-
-Add the package via the Flutter CLI:
-
-```bash
-flutter pub add scroll_texts_widget
-```
-
-Or add it manually to your `pubspec.yaml`:
-
-```yaml
-dependencies:
-  scroll_texts_widget: ^<latest-version>
-```
