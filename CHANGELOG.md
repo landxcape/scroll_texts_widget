@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.1.4
+
+- Docs: Added interactive sandbox demo badge and web links.
+- Docs: Streamlined installation instructions to recommended CLI command and polished layout.
+
 ## 0.1.3
 
 - Documentation and README refinements.
