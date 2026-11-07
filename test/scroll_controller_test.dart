@@ -66,5 +66,45 @@ void main() {
       expect(controller.progress, 0.25);
       expect(controller.effectiveRenderMode, ScrollTextRenderMode.streaming);
     });
+
+    test('supports playlist mutation methods and delegates to callbacks', () {
+      final controller = ScrollTextsController();
+      String? addedText;
+      int? insertedIndex;
+      String? insertedText;
+      int? removedIndex;
+      bool cleared = false;
+      List<String>? newTexts;
+
+      controller.onAddTextRequested = (t) => addedText = t;
+      controller.onInsertTextRequested = (i, t) {
+        insertedIndex = i;
+        insertedText = t;
+      };
+      controller.onRemoveTextAtRequested = (i) => removedIndex = i;
+      controller.onClearTextsRequested = () => cleared = true;
+      controller.onSetTextsRequested = (list) => newTexts = list;
+
+      controller.addText('First');
+      expect(addedText, 'First');
+      expect(controller.texts, ['First']);
+
+      controller.insertText(0, 'Zero');
+      expect(insertedIndex, 0);
+      expect(insertedText, 'Zero');
+      expect(controller.texts, ['Zero', 'First']);
+
+      controller.removeTextAt(1);
+      expect(removedIndex, 1);
+      expect(controller.texts, ['Zero']);
+
+      controller.setTexts(['Apple', 'Banana']);
+      expect(newTexts, ['Apple', 'Banana']);
+      expect(controller.texts, ['Apple', 'Banana']);
+
+      controller.clearTexts();
+      expect(cleared, isTrue);
+      expect(controller.texts, isEmpty);
+    });
   });
 }

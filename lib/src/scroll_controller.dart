@@ -12,6 +12,7 @@ class ScrollTextsController extends ChangeNotifier {
   bool _isPaused;
   ScrollTextRenderMode _effectiveRenderMode;
   double _maxScrollExtent;
+  List<String> _texts;
 
   /// Callback registered by the attached widget to handle jumps to an offset.
   void Function(double offset)? onJumpToRequested;
@@ -25,6 +26,24 @@ class ScrollTextsController extends ChangeNotifier {
   /// Callback registered by the attached widget to handle resume requests.
   void Function()? onResumeRequested;
 
+  /// Callback registered by the attached widget to handle adding a text.
+  void Function(String text)? onAddTextRequested;
+
+  /// Callback registered by the attached widget to handle inserting a text.
+  void Function(int index, String text)? onInsertTextRequested;
+
+  /// Callback registered by the attached widget to handle removing a text at an index.
+  void Function(int index)? onRemoveTextAtRequested;
+
+  /// Callback registered by the attached widget to handle clearing all texts.
+  void Function()? onClearTextsRequested;
+
+  /// Callback registered by the attached widget to handle replacing all texts.
+  void Function(List<String> texts)? onSetTextsRequested;
+
+  /// Callback registered by the attached widget to retrieve the live effective texts.
+  List<String> Function()? onGetTextsRequested;
+
   /// Creates a controller to monitor and control a [ScrollTextsWidget].
   ScrollTextsController({
     double initialScrollOffset = 0.0,
@@ -36,7 +55,8 @@ class ScrollTextsController extends ChangeNotifier {
        _currentTextIndex = initialTextIndex,
        _isPaused = initialPaused,
        _effectiveRenderMode = initialRenderMode,
-       _maxScrollExtent = initialMaxScrollExtent;
+       _maxScrollExtent = initialMaxScrollExtent,
+       _texts = [];
 
   /// The current scroll offset in pixels.
   double get offset => _offset;
@@ -62,6 +82,10 @@ class ScrollTextsController extends ChangeNotifier {
   /// Whether the scrolling ticker is currently paused.
   bool get isPaused => _isPaused;
 
+  /// An unmodifiable view of the current texts in the playlist.
+  List<String> get texts =>
+      onGetTextsRequested?.call() ?? List.unmodifiable(_texts);
+
   /// Internal update invoked by the widget driver.
   void updateState({
     required double offset,
@@ -69,6 +93,7 @@ class ScrollTextsController extends ChangeNotifier {
     required bool isPaused,
     ScrollTextRenderMode? effectiveRenderMode,
     double? maxScrollExtent,
+    List<String>? texts,
   }) {
     final changed =
         _offset != offset ||
@@ -76,7 +101,9 @@ class ScrollTextsController extends ChangeNotifier {
         _isPaused != isPaused ||
         (effectiveRenderMode != null &&
             _effectiveRenderMode != effectiveRenderMode) ||
-        (maxScrollExtent != null && _maxScrollExtent != maxScrollExtent);
+        (maxScrollExtent != null && _maxScrollExtent != maxScrollExtent) ||
+        (texts != null && !listEquals(_texts, texts));
+
     _offset = offset;
     _currentTextIndex = textIndex;
     _isPaused = isPaused;
@@ -85,6 +112,9 @@ class ScrollTextsController extends ChangeNotifier {
     }
     if (maxScrollExtent != null) {
       _maxScrollExtent = maxScrollExtent;
+    }
+    if (texts != null) {
+      _texts = List<String>.from(texts);
     }
     if (changed) {
       notifyListeners();
@@ -131,5 +161,46 @@ class ScrollTextsController extends ChangeNotifier {
     } else {
       pause();
     }
+  }
+
+  /// Appends a new [text] to the end of the scrolling playlist.
+  void addText(String text) {
+    _texts.add(text);
+    onAddTextRequested?.call(text);
+    notifyListeners();
+  }
+
+  /// Inserts a new [text] at [index] in the scrolling playlist.
+  void insertText(int index, String text) {
+    if (index >= 0 && index <= _texts.length) {
+      _texts.insert(index, text);
+    } else {
+      _texts.add(text);
+    }
+    onInsertTextRequested?.call(index, text);
+    notifyListeners();
+  }
+
+  /// Removes the text at [index] from the scrolling playlist.
+  void removeTextAt(int index) {
+    if (index >= 0 && index < _texts.length) {
+      _texts.removeAt(index);
+    }
+    onRemoveTextAtRequested?.call(index);
+    notifyListeners();
+  }
+
+  /// Clears all texts from the scrolling playlist.
+  void clearTexts() {
+    _texts.clear();
+    onClearTextsRequested?.call();
+    notifyListeners();
+  }
+
+  /// Replaces the entire scrolling playlist with [texts].
+  void setTexts(List<String> texts) {
+    _texts = List<String>.from(texts);
+    onSetTextsRequested?.call(texts);
+    notifyListeners();
   }
 }

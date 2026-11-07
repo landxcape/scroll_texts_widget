@@ -1,4 +1,5 @@
 import 'dart:math' as math;
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 
@@ -62,7 +63,7 @@ class ScrollTextsWidget extends StatefulWidget {
   /// horizontal marquee scrolling.
   const ScrollTextsWidget({
     super.key,
-    required this.texts,
+    this.texts = const [],
     this.textStyle = const TextStyle(fontSize: 18.0, color: Colors.black),
     this.scrollSpeed = 50.0,
     this.pauseDuration = const Duration(seconds: 2),
@@ -102,6 +103,7 @@ class _ScrollTextsWidgetState extends State<ScrollTextsWidget>
   ScrollTextsController get _effectiveController =>
       widget.controller ?? (_internalController ??= ScrollTextsController());
 
+  List<String> _effectiveTexts = [];
   double _scrollOffset = 0.0;
   int _currentTextIndex = 0;
   bool _isManuallyPaused = false;
@@ -124,9 +126,10 @@ class _ScrollTextsWidgetState extends State<ScrollTextsWidget>
   @override
   void initState() {
     super.initState();
+    _effectiveTexts = List<String>.from(widget.texts);
     _currentTextIndex =
-        (widget.texts.isNotEmpty &&
-            widget.initialTextIndex < widget.texts.length &&
+        (_effectiveTexts.isNotEmpty &&
+            widget.initialTextIndex < _effectiveTexts.length &&
             widget.initialTextIndex >= 0)
         ? widget.initialTextIndex
         : 0;
@@ -137,7 +140,7 @@ class _ScrollTextsWidgetState extends State<ScrollTextsWidget>
 
     _ticker = createTicker(_tick);
 
-    if (widget.texts.isNotEmpty) {
+    if (_effectiveTexts.isNotEmpty) {
       _prepareActiveText();
       if (!_isManuallyPaused) {
         if (widget.initialDelay > Duration.zero) {
@@ -157,10 +160,10 @@ class _ScrollTextsWidgetState extends State<ScrollTextsWidget>
 
   void _syncControllerState({bool? isPaused}) {
     final currentText =
-        widget.texts.isNotEmpty &&
+        _effectiveTexts.isNotEmpty &&
             _currentTextIndex >= 0 &&
-            _currentTextIndex < widget.texts.length
-        ? widget.texts[_currentTextIndex]
+            _currentTextIndex < _effectiveTexts.length
+        ? _effectiveTexts[_currentTextIndex]
         : '';
     final bool isStreaming = _isStreamingActive(currentText);
     final double totalDistance = isStreaming
@@ -175,6 +178,7 @@ class _ScrollTextsWidgetState extends State<ScrollTextsWidget>
           ? ScrollTextRenderMode.streaming
           : ScrollTextRenderMode.cached,
       maxScrollExtent: totalDistance.isFinite ? totalDistance : 0.0,
+      texts: _effectiveTexts,
     );
   }
 
@@ -184,6 +188,13 @@ class _ScrollTextsWidgetState extends State<ScrollTextsWidget>
     _effectiveController.onJumpToTextRequested = _handleJumpToText;
     _effectiveController.onPauseRequested = _handlePause;
     _effectiveController.onResumeRequested = _handleResume;
+    _effectiveController.onAddTextRequested = _handleAddText;
+    _effectiveController.onInsertTextRequested = _handleInsertText;
+    _effectiveController.onRemoveTextAtRequested = _handleRemoveTextAt;
+    _effectiveController.onClearTextsRequested = _handleClearTexts;
+    _effectiveController.onSetTextsRequested = _handleSetTexts;
+    _effectiveController.onGetTextsRequested =
+        () => List.unmodifiable(_effectiveTexts);
   }
 
   void _detachController(ScrollTextsController controller) {
@@ -191,6 +202,12 @@ class _ScrollTextsWidgetState extends State<ScrollTextsWidget>
     controller.onJumpToTextRequested = null;
     controller.onPauseRequested = null;
     controller.onResumeRequested = null;
+    controller.onAddTextRequested = null;
+    controller.onInsertTextRequested = null;
+    controller.onRemoveTextAtRequested = null;
+    controller.onClearTextsRequested = null;
+    controller.onSetTextsRequested = null;
+    controller.onGetTextsRequested = null;
   }
 
   bool _isStreamingActive(String text) {
@@ -209,11 +226,11 @@ class _ScrollTextsWidgetState extends State<ScrollTextsWidget>
   }
 
   void _prepareActiveText() {
-    if (widget.texts.isEmpty || _currentTextIndex >= widget.texts.length) {
+    if (_effectiveTexts.isEmpty || _currentTextIndex >= _effectiveTexts.length) {
       return;
     }
 
-    final currentText = widget.texts[_currentTextIndex];
+    final currentText = _effectiveTexts[_currentTextIndex];
     if (_isStreamingActive(currentText)) {
       _cachedTextPainter = null;
       _tokens = StreamingTokenizer.tokenize(currentText);
@@ -234,7 +251,7 @@ class _ScrollTextsWidgetState extends State<ScrollTextsWidget>
   }
 
   void _tick(Duration elapsed) {
-    if (_isManuallyPaused || widget.texts.isEmpty) return;
+    if (_isManuallyPaused || _effectiveTexts.isEmpty) return;
 
     final double deltaTimeSeconds;
     if (_lastElapsedDuration == null) {
@@ -250,7 +267,7 @@ class _ScrollTextsWidgetState extends State<ScrollTextsWidget>
     final distanceMoved = widget.scrollSpeed * deltaTimeSeconds;
     _scrollOffset += distanceMoved;
 
-    final currentText = widget.texts[_currentTextIndex];
+    final currentText = _effectiveTexts[_currentTextIndex];
     final bool isStreaming = _isStreamingActive(currentText);
 
     if (isStreaming) {
@@ -390,7 +407,7 @@ class _ScrollTextsWidgetState extends State<ScrollTextsWidget>
     final completedIndex = _currentTextIndex;
     widget.onTextCompleted?.call(completedIndex);
 
-    final bool isLastText = _currentTextIndex >= widget.texts.length - 1;
+    final bool isLastText = _currentTextIndex >= _effectiveTexts.length - 1;
     if (!widget.repeat && isLastText) {
       _syncControllerState(isPaused: true);
       if (mounted) {
@@ -399,8 +416,8 @@ class _ScrollTextsWidgetState extends State<ScrollTextsWidget>
       return;
     }
 
-    if (widget.texts.isNotEmpty) {
-      _currentTextIndex = (_currentTextIndex + 1) % widget.texts.length;
+    if (_effectiveTexts.isNotEmpty) {
+      _currentTextIndex = (_currentTextIndex + 1) % _effectiveTexts.length;
       _prepareActiveText();
     }
 
@@ -426,8 +443,8 @@ class _ScrollTextsWidgetState extends State<ScrollTextsWidget>
 
   void _handleJumpTo(double offset) {
     _scrollOffset = offset;
-    final currentText = widget.texts.isNotEmpty
-        ? widget.texts[_currentTextIndex]
+    final currentText = _effectiveTexts.isNotEmpty
+        ? _effectiveTexts[_currentTextIndex]
         : '';
     if (_isStreamingActive(currentText)) {
       _rebuildStreamingWindow(_scrollOffset);
@@ -439,8 +456,8 @@ class _ScrollTextsWidgetState extends State<ScrollTextsWidget>
   }
 
   void _handleJumpToText(int textIndex, double offset) {
-    if (widget.texts.isEmpty) return;
-    _currentTextIndex = textIndex.clamp(0, widget.texts.length - 1);
+    if (_effectiveTexts.isEmpty) return;
+    _currentTextIndex = textIndex.clamp(0, _effectiveTexts.length - 1);
     _scrollOffset = offset;
     _lastElapsedDuration = null;
     _prepareActiveText();
@@ -461,13 +478,126 @@ class _ScrollTextsWidgetState extends State<ScrollTextsWidget>
   }
 
   void _handleResume() {
-    if (widget.texts.isEmpty) return;
+    if (_effectiveTexts.isEmpty) return;
     _isManuallyPaused = false;
     _lastElapsedDuration = null;
     _syncControllerState();
     if (_ticker?.isTicking == false) {
       _ticker?.start();
     }
+    if (mounted) {
+      setState(() {});
+    }
+  }
+
+  void _handleAddText(String text) {
+    final wasEmpty = _effectiveTexts.isEmpty;
+    _effectiveTexts.add(text);
+
+    if (wasEmpty) {
+      _currentTextIndex = 0;
+      _scrollOffset = 0.0;
+      _prepareActiveText();
+      if (!_isManuallyPaused && (_ticker?.isTicking == false)) {
+        _ticker?.start();
+      }
+    }
+
+    _syncControllerState();
+    if (mounted) {
+      setState(() {});
+    }
+  }
+
+  void _handleInsertText(int index, String text) {
+    final wasEmpty = _effectiveTexts.isEmpty;
+    if (index >= 0 && index <= _effectiveTexts.length) {
+      _effectiveTexts.insert(index, text);
+      if (!wasEmpty && index <= _currentTextIndex) {
+        _currentTextIndex++;
+      }
+    } else {
+      _effectiveTexts.add(text);
+    }
+
+    if (wasEmpty) {
+      _currentTextIndex = 0;
+      _scrollOffset = 0.0;
+      _prepareActiveText();
+      if (!_isManuallyPaused && (_ticker?.isTicking == false)) {
+        _ticker?.start();
+      }
+    }
+
+    _syncControllerState();
+    if (mounted) {
+      setState(() {});
+    }
+  }
+
+  void _handleRemoveTextAt(int index) {
+    if (_effectiveTexts.isEmpty || index < 0 || index >= _effectiveTexts.length) {
+      return;
+    }
+
+    final isCurrent = index == _currentTextIndex;
+    _effectiveTexts.removeAt(index);
+
+    if (_effectiveTexts.isEmpty) {
+      _ticker?.stop();
+      _currentTextIndex = 0;
+      _scrollOffset = 0.0;
+      _cachedTextPainter = null;
+      _activeTokens.clear();
+    } else if (isCurrent) {
+      if (_currentTextIndex >= _effectiveTexts.length) {
+        _currentTextIndex = 0;
+      }
+      _scrollOffset = 0.0;
+      _prepareActiveText();
+    } else if (index < _currentTextIndex) {
+      _currentTextIndex--;
+    }
+
+    _syncControllerState();
+    if (mounted) {
+      setState(() {});
+    }
+  }
+
+  void _handleClearTexts() {
+    _effectiveTexts.clear();
+    _ticker?.stop();
+    _currentTextIndex = 0;
+    _scrollOffset = 0.0;
+    _cachedTextPainter = null;
+    _activeTokens.clear();
+    _syncControllerState();
+    if (mounted) {
+      setState(() {});
+    }
+  }
+
+  void _handleSetTexts(List<String> texts) {
+    _effectiveTexts = List<String>.from(texts);
+    _tokenWidths.clear();
+    if (_effectiveTexts.isEmpty) {
+      _ticker?.stop();
+      _currentTextIndex = 0;
+      _scrollOffset = 0.0;
+      _cachedTextPainter = null;
+      _activeTokens.clear();
+    } else {
+      if (_currentTextIndex >= _effectiveTexts.length) {
+        _currentTextIndex = 0;
+        _scrollOffset = 0.0;
+      }
+      _prepareActiveText();
+      if (!_isManuallyPaused && (_ticker?.isTicking == false)) {
+        _ticker?.start();
+      }
+    }
+    _syncControllerState();
     if (mounted) {
       setState(() {});
     }
@@ -495,24 +625,8 @@ class _ScrollTextsWidgetState extends State<ScrollTextsWidget>
       needsRebuild = true;
     }
 
-    if (widget.texts != oldWidget.texts) {
-      _tokenWidths.clear();
-      if (widget.texts.isEmpty) {
-        _ticker?.stop();
-        _currentTextIndex = 0;
-        _scrollOffset = 0.0;
-      } else {
-        if (_currentTextIndex >= widget.texts.length) {
-          _currentTextIndex = 0;
-          _scrollOffset = 0.0;
-        }
-        _prepareActiveText();
-        if (!_isManuallyPaused && (_ticker?.isTicking == false)) {
-          _ticker?.start();
-        }
-      }
-      _syncControllerState();
-      needsRebuild = true;
+    if (!listEquals(widget.texts, oldWidget.texts)) {
+      _handleSetTexts(widget.texts);
     }
 
     if (needsRebuild && mounted) {
@@ -522,13 +636,13 @@ class _ScrollTextsWidgetState extends State<ScrollTextsWidget>
 
   @override
   Widget build(BuildContext context) {
-    if (widget.texts.isEmpty ||
+    if (_effectiveTexts.isEmpty ||
         _currentTextIndex < 0 ||
-        _currentTextIndex >= widget.texts.length) {
+        _currentTextIndex >= _effectiveTexts.length) {
       return const SizedBox.shrink();
     }
 
-    final currentText = widget.texts[_currentTextIndex];
+    final currentText = _effectiveTexts[_currentTextIndex];
     final bool isStreaming = _isStreamingActive(currentText);
 
     if (!isStreaming && _cachedTextPainter == null) {

@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.5
+
+- Added dynamic playlist mutation methods to `ScrollTextsController`: `addText`, `insertText`, `removeTextAt`, `clearTexts`, `setTexts`, and the `texts` getter.
+- Made `texts` optional in `ScrollTextsWidget` (defaults to empty list), allowing purely controller-driven usage.
+- Updated `didUpdateWidget` to use `listEquals` for reliable in-place list mutation detection.
+
 ## 0.1.4
 
 - Docs: Added interactive sandbox demo badge and web links.

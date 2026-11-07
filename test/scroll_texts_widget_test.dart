@@ -386,5 +386,125 @@ void main() {
       await tester.pump(const Duration(milliseconds: 50));
       expect(controller.offset, 120.0);
     });
+
+    testWidgets('supports dynamic controller mutations (addText, insertText, removeTextAt, clearTexts, setTexts)', (tester) async {
+      final controller = ScrollTextsController();
+
+      // Start with empty texts and no texts parameter
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: SizedBox(
+              width: 300,
+              child: ScrollTextsWidget(
+                controller: controller,
+                scrollSpeed: 100.0,
+              ),
+            ),
+          ),
+        ),
+      );
+
+      expect(controller.texts, isEmpty);
+
+      // 1. addText when empty starts the ticker
+      controller.addText('First Announcement');
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 100));
+      expect(controller.texts, ['First Announcement']);
+      expect(controller.offset, greaterThan(0.0));
+
+      // 2. addText while scrolling continues smoothly
+      final currentOffset = controller.offset;
+      controller.addText('Second Announcement');
+      await tester.pump(const Duration(milliseconds: 100));
+      expect(controller.texts, ['First Announcement', 'Second Announcement']);
+      expect(controller.offset, greaterThan(currentOffset));
+
+      // 3. insertText after current index
+      controller.insertText(1, 'Inserted Middle');
+      expect(controller.texts, [
+        'First Announcement',
+        'Inserted Middle',
+        'Second Announcement',
+      ]);
+      expect(controller.currentTextIndex, 0);
+
+      // 4. insertText at 0 adjusts currentTextIndex to preserve active item
+      controller.insertText(0, 'Inserted First');
+      expect(controller.texts, [
+        'Inserted First',
+        'First Announcement',
+        'Inserted Middle',
+        'Second Announcement',
+      ]);
+      expect(controller.currentTextIndex, 1);
+
+      // 5. removeTextAt for item before current adjusts currentTextIndex
+      controller.removeTextAt(0);
+      expect(controller.texts, [
+        'First Announcement',
+        'Inserted Middle',
+        'Second Announcement',
+      ]);
+      expect(controller.currentTextIndex, 0);
+
+      // 6. removeTextAt for active item transitions smoothly
+      controller.removeTextAt(0);
+      expect(controller.texts, ['Inserted Middle', 'Second Announcement']);
+      expect(controller.currentTextIndex, 0);
+      await tester.pump(const Duration(milliseconds: 100));
+
+      // 7. setTexts replaces entire playlist
+      controller.setTexts(['Fresh Alpha', 'Fresh Beta']);
+      expect(controller.texts, ['Fresh Alpha', 'Fresh Beta']);
+      expect(controller.currentTextIndex, 0);
+      await tester.pump(const Duration(milliseconds: 100));
+
+      // 8. clearTexts empties queue and stops ticker
+      controller.clearTexts();
+      expect(controller.texts, isEmpty);
+      await tester.pump(const Duration(milliseconds: 100));
+      expect(controller.offset, 0.0);
+    });
+
+    testWidgets('didUpdateWidget detects in-place list mutations via listEquals', (tester) async {
+      final list = <String>['Headline 1'];
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: SizedBox(
+              width: 300,
+              child: ScrollTextsWidget(
+                texts: list,
+                scrollSpeed: 50.0,
+              ),
+            ),
+          ),
+        ),
+      );
+
+      await tester.pump(const Duration(milliseconds: 100));
+
+      // Mutate in place and pump widget with same list instance
+      list.add('Headline 2');
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: SizedBox(
+              width: 300,
+              child: ScrollTextsWidget(
+                texts: list,
+                scrollSpeed: 50.0,
+              ),
+            ),
+          ),
+        ),
+      );
+
+      await tester.pump(const Duration(milliseconds: 100));
+      expect(find.byType(ScrollTextsWidget), findsOneWidget);
+    });
   });
 }

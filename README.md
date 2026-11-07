@@ -16,7 +16,7 @@ An [interactive sandbox](https://shakyapurna.com.np/#/lab/scroll_texts_widget/sa
   * **Cached Mode:** Measures text once upfront. Best for short-to-medium announcements.
   * **Streaming Mode:** Measures and draws only the words currently on screen. Helpful for very long texts.
   * **Auto Mode (Default):** Picks between cached and streaming based on text length.
-* **Playback Controller:** Use `ScrollTextsController` to play, pause, jump to an offset, or skip to a specific item in the list.
+* **Playback & Queue Controller:** Use `ScrollTextsController` to play, pause, jump to an offset, or dynamically add, insert, remove, and replace headlines at runtime.
 * **Consistent Speed:** Set the scroll speed in pixels per second so it moves at the same pace no matter how long the text is.
 * **RTL Support:** Full support for right-to-left languages like Arabic and Hebrew.
 * **Auto Height:** Automatically sizes its height to match the text style.
