@@ -4,11 +4,11 @@ A horizontal marquee text banner widget for Flutter.
 
 [![pub package](https://img.shields.io/pub/v/scroll_texts_widget.svg)](https://pub.dev/packages/scroll_texts_widget)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-[![Interactive Sandbox](https://img.shields.io/badge/demo-interactive%20sandbox-0284C7.svg)](https://shakyapurna.com.np/#/lab/scroll_texts_widget/sandbox)
+[![Interactive Sandbox](https://img.shields.io/badge/demo-interactive%20sandbox-0284C7.svg)](https://shakyapurna.com.np/lab/scroll_texts_widget/sandbox)
 
 It renders text directly to the canvas and uses a timer ticker so text scrolls at a steady speed regardless of display refresh rate or screen size.
 
-An [interactive sandbox](https://shakyapurna.com.np/#/lab/scroll_texts_widget/sandbox) is available to test streaming vs. cached rendering modes and speed controls in real-time.
+An [interactive sandbox](https://shakyapurna.com.np/lab/scroll_texts_widget/sandbox) is available to test streaming vs. cached rendering modes and speed controls in real-time.
 
 ## Features
 
