@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.6
+
+- Docs: Updated README API reference tables and usage guide with dynamic queue mutation methods (`addText`, `insertText`, `removeTextAt`, `clearTexts`, `setTexts`, and `texts` getter).
+- Docs: Updated interactive tappable headline recipe to use `controller.texts[controller.currentTextIndex]`.
+- Docs: Clarified optional `texts` parameter when using a `ScrollTextsController`.
+
 ## 0.1.5
 
 - Added dynamic playlist mutation methods to `ScrollTextsController`: `addText`, `insertText`, `removeTextAt`, `clearTexts`, `setTexts`, and the `texts` getter.

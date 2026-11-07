@@ -103,6 +103,33 @@ ScrollTextsWidget(
 )
 ```
 
+### Dynamic Queue Management (Zero Parent Rebuilds)
+
+Mutate the scrolling queue at runtime without triggering parent `setState` or rebuilding widget trees:
+
+```dart
+final controller = ScrollTextsController();
+
+// Append a new headline to the queue
+controller.addText('BTC-USD \$94,200 ▲ +3.4%');
+
+// Prepend priority breaking news at index 0
+controller.insertText(0, '⚡ BREAKING: Market open');
+
+// Remove an expired headline
+controller.removeTextAt(2);
+
+// Atomically replace the entire playlist
+controller.setTexts(['Headline A', 'Headline B', 'Headline C']);
+
+// Inspect the active queue
+print('Total items: ${controller.texts.length}');
+print('Currently showing: ${controller.texts[controller.currentTextIndex]}');
+
+// Clear the entire queue and idle the ticker
+controller.clearTexts();
+```
+
 ---
 
 ## Recipes
@@ -137,7 +164,7 @@ GestureDetector(
   behavior: HitTestBehavior.opaque,
   onTap: () {
     final activeIndex = controller.currentTextIndex;
-    final activeHeadline = myAnnouncements[activeIndex];
+    final activeHeadline = controller.texts[activeIndex];
     Navigator.of(context).push(
       MaterialPageRoute(builder: (_) => ArticlePage(headline: activeHeadline)),
     );
@@ -213,8 +240,8 @@ if (kIsWeb || defaultTargetPlatform == TargetPlatform.macOS || defaultTargetPlat
 
 | Property | Type | Default | Description |
 | :--- | :--- | :--- | :--- |
-| `texts` | `List<String>` | **Required** | The list of strings to cycle and scroll through. |
-| `controller` | `ScrollTextsController?` | `null` | Optional controller for reading position and programmatic playback/seeking. |
+| `texts` | `List<String>` | `const []` | Initial list of strings to scroll through. If omitted or empty, headlines can be dynamically added via `ScrollTextsController`. |
+| `controller` | `ScrollTextsController?` | `null` | Optional controller for reading position, programmatic transport, and queue mutations. |
 | `scrollSpeed` | `double` | `50.0` | Velocity in pixels per second (px/s). |
 | `pauseDuration` | `Duration` | `Duration(seconds: 2)` | Duration to pause after a text exits before the next text starts. |
 | `initialDelay` | `Duration` | `Duration.zero` | Optional delay before the very first text begins scrolling. |
@@ -231,12 +258,18 @@ if (kIsWeb || defaultTargetPlatform == TargetPlatform.macOS || defaultTargetPlat
 
 | Member | Type | Description |
 | :--- | :--- | :--- |
+| `texts` | `List<String>` (getter) | Unmodifiable view of the headlines currently loaded in the queue. |
 | `offset` | `double` (getter) | The current scroll offset in pixels. |
 | `maxScrollExtent` | `double` (getter) | The total scroll distance for the active text. |
 | `progress` | `double` (getter) | Normalized scroll progress from `0.0` to `1.0`. |
 | `effectiveRenderMode` | `ScrollTextRenderMode` (getter) | The active render mode engaged (`cached` or `streaming`), useful when `auto` is selected. |
 | `currentTextIndex` | `int` (getter) | The index of the active text in the playlist. |
 | `isPaused` | `bool` (getter) | Whether scrolling is currently paused. |
+| `addText(String text)` | `void` | Appends a new headline to the queue without rebuilding parent widgets. |
+| `insertText(int index, String text)` | `void` | Inserts a headline at a specific index without shifting active playback. |
+| `removeTextAt(int index)` | `void` | Removes a headline from the queue. |
+| `clearTexts()` | `void` | Clears the entire queue and idles the ticker. |
+| `setTexts(List<String> texts)` | `void` | Atomically replaces the entire queue with a new list of headlines. |
 | `pause()` | `void` | Pauses the scrolling animation. |
 | `resume()` | `void` | Resumes scrolling. |
 | `togglePause()` | `void` | Toggles between paused and scrolling states. |
